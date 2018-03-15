@@ -11,7 +11,8 @@ use Cradle\Framework\CommandLine;
 use Cradle\Event\EventHandler;
 
 /**
- * CLI populates database with dummy data
+ * $ cradle sql populate
+ * $ cradle sql populate package=foo/bar
  *
  * @param Request $request
  * @param Response $response
@@ -42,7 +43,7 @@ return function ($request, $response) {
         $type = $package->getPackageType();
         //skip pseudo packages
         if ($type === 'pseudo') {
-            CommandLine::warning(sprintf('Skipping %s', $package));
+            CommandLine::warning(sprintf('Skipping %s', $name));
             continue;
         }
 
