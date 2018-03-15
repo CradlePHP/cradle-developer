@@ -7,187 +7,267 @@
  * distributed with this package.
  */
 
-
 /**
- * CLI developer starting point
+ * $ cradle connect app-1
  *
  * @param Request $request
  * @param Response $response
+ */
+$cradle->on('connect', include __DIR__ . '/events/connect.php');
+
+/**
+ * $ cradle help
  *
- * @return string
+ * @param Request $request
+ * @param Response $response
+ */
+$cradle->on('help', include __DIR__ . '/events/help.php');
+
+/**
+ * $ cradle install
+ * $ cradle install -f | --force
+ * $ cradle install --skip-sql
+ * $ cradle install --skip-versioning
+ * $ cradle install -h 127.0.0.1 -u root -p 123
+ *
+ * @param Request $request
+ * @param Response $response
+ */
+$cradle->on('install', include __DIR__ . '/events/install.php');
+
+/**
+ * $ cradle deploy
+ *
+ * @param Request $request
+ * @param Response $response
+ */
+$cradle->on('deploy', include __DIR__ . '/events/deploy.php');
+
+/**
+ * $ cradle deploy help
+ *
+ * @param Request $request
+ * @param Response $response
+ */
+$cradle->on('deploy-help', include __DIR__ . '/events/deploy/help.php');
+
+/**
+ * $ cradle deploy production
+ *
+ * @param Request $request
+ * @param Response $response
+ */
+$cradle->on('deploy-production', include __DIR__ . '/events/deploy/production.php');
+
+/**
+ * $ cradle deploy s3
+ * $ cradle deploy s3 --include-yarn
+ * $ cradle deploy s3 --include-upload
+ *
+ * @param Request $request
+ * @param Response $response
+ */
+$cradle->on('deploy-s3', include __DIR__ . '/events/deploy/s3.php');
+
+/**
+ * $ cradle elastic
+ *
+ * @param Request $request
+ * @param Response $response
+ */
+$cradle->on('elastic', include __DIR__ . '/events/elastic.php');
+
+/**
+ * $ cradle elastic help
+ *
+ * @param Request $request
+ * @param Response $response
+ */
+$cradle->on('elastic-help', include __DIR__ . '/events/elastic/help.php');
+
+/**
+ * $ cradle elastic flush
+ * $ cradle elastic flush foo/bar
+ *
+ * @param Request $request
+ * @param Response $response
+ */
+$cradle->on('elastic-flush', include __DIR__ . '/events/elastic/flush.php');
+
+/**
+ * $ cradle elastic map
+ * $ cradle elastic map foo/bar
+ *
+ * @param Request $request
+ * @param Response $response
+ */
+$cradle->on('elastic-map', include __DIR__ . '/events/elastic/map.php');
+
+/**
+ * $ cradle elastic populate
+ * $ cradle elastic populate foo/bar
+ *
+ * @param Request $request
+ * @param Response $response
+ */
+$cradle->on('elastic-populate', include __DIR__ . '/events/elastic/populate.php');
+
+/**
+ * $ cradle generate
+ *
+ * @param Request $request
+ * @param Response $response
+ */
+$cradle->on('generate', include __DIR__ . '/events/generate.php');
+
+/**
+ * $ cradle generate help
+ *
+ * @param Request $request
+ * @param Response $response
+ */
+$cradle->on('generate-help', include __DIR__ . '/events/generate/help.php');
+
+/**
+ * $ cradle generate module foobar
+ *
+ * @param Request $request
+ * @param Response $response
+ */
+$cradle->on('generate-module', include __DIR__ . '/events/generate/module.php');
+
+/**
+ * $ cradle generate app foobar
+ *
+ * @param Request $request
+ * @param Response $response
+ */
+$cradle->on('generate-app', include __DIR__ . '/events/generate/admin.php');
+
+/**
+ * $ cradle package
+ *
+ * @param Request $request
+ * @param Response $response
  */
 $cradle->on('package', include __DIR__ . '/events/package.php');
-$cradle->on('package-list', include __DIR__ . '/events/package/list.php');
+
+/**
+ * $ cradle package help
+ *
+ * @param Request $request
+ * @param Response $response
+ */
+$cradle->on('package-help', include __DIR__ . '/events/package/help.php');
+
+/**
+ * $ cradle package install foo/bar
+ * $ cradle package install foo/bar 1.0.0
+ *
+ * @param Request $request
+ * @param Response $response
+ */
 $cradle->on('package-install', include __DIR__ . '/events/package/install.php');
 
 /**
- * CLI developer starting point
+ * $ cradle package list
  *
  * @param Request $request
  * @param Response $response
- *
- * @return string
  */
-$cradle->on('dev', include __DIR__ . '/events/developer.php');
+$cradle->on('package-list', include __DIR__ . '/events/package/list.php');
 
 /**
- * CLI help menu
+ * $ cradle package remove foo/bar
  *
  * @param Request $request
  * @param Response $response
- *
- * @return string
  */
-$cradle->on('dev-help', include __DIR__ . '/events/help.php');
+$cradle->on('package-remove', include __DIR__ . '/events/package/remove.php');
 
 /**
- * CLI Deploy
+ * $ cradle package search
+ * $ cradle package search q=cradle-foo
+ * $ cradle package search p=2
  *
  * @param Request $request
  * @param Response $response
  */
-//$cradle->on('developer-deploy-production', include __DIR__ . '/events/deploy/production.php');
+$cradle->on('package-search', include __DIR__ . '/events/package/search.php');
 
 /**
- * CLI Deploy
+ * $ cradle package update foo/bar
+ * $ cradle package update foo/bar 1.0.0
  *
  * @param Request $request
  * @param Response $response
  */
-//$cradle->on('developer-deploy-s3', include __DIR__ . '/events/deploy/s3.php');
+$cradle->on('package-update', include __DIR__ . '/events/package/update.php');
 
 /**
- * CLI production connect
+ * $ cradle redis
  *
  * @param Request $request
  * @param Response $response
  */
-//$cradle->on('developer-connect-to', include __DIR__ . '/events/deploy/connect.php');
+$cradle->on('redis', include __DIR__ . '/events/redis.php');
 
 /**
- * CLI clear cache
+ * $ cradle redis help
  *
  * @param Request $request
  * @param Response $response
  */
-//$cradle->on('developer-flush-redis', include __DIR__ . '/events/redis/flush.php');
+$cradle->on('redis-help', include __DIR__ . '/events/redis/help.php');
 
 /**
- * CLI clear index
+ * $ cradle redis flush
+ * $ cradle redis flush foo/bar
  *
  * @param Request $request
  * @param Response $response
  */
-//$cradle->on('developer-flush-elastic', include __DIR__ . '/events/elastic/flush.php');
+$cradle->on('redis-flush', include __DIR__ . '/events/redis/flush.php');
 
 /**
- * CLI map index
+ * $ cradle sql
  *
  * @param Request $request
  * @param Response $response
  */
-//$cradle->on('developer-map-elastic', include __DIR__ . '/events/elastic/map.php');
+$cradle->on('sql', include __DIR__ . '/events/sql.php');
 
 /**
- * CLI clear index
+ * $ cradle sql help
  *
  * @param Request $request
  * @param Response $response
  */
-//$cradle->on('developer-populate-elastic', include __DIR__ . '/events/elastic/populate.php');
+$cradle->on('sql-help', include __DIR__ . '/events/sql/help.php');
 
 /**
- * CLI clear index
+ * $ cradle sql build
+ * $ cradle sql build foo/bar
  *
  * @param Request $request
  * @param Response $response
  */
-//$cradle->on('developer-flush-sql', include __DIR__ . '/events/sql/flush.php');
+$cradle->on('sql-build', include __DIR__ . '/events/sql/build.php');
 
 /**
- * CLI populates database with dummy data
+ * $ cradle sql flush
+ * $ cradle sql flush foo/bar
  *
  * @param Request $request
  * @param Response $response
  */
-//$cradle->on('developer-build-sql', include __DIR__ . '/events/sql/build.php');
+$cradle->on('sql-flush', include __DIR__ . '/events/sql/flush.php');
 
 /**
- * CLI populates database with dummy data
+ * $ cradle sql populate
+ * $ cradle sql populate foo/bar
  *
  * @param Request $request
  * @param Response $response
  */
-//$cradle->on('developer-populate-sql', include __DIR__ . '/events/sql/populate.php');
-
-/**
- * CLI developer installation
- *
- * @param Request $request
- * @param Response $response
- */
-//$cradle->on('developer-install', include __DIR__ . '/events/install.php');
-
-/**
- * CLI developer update
- *
- * @param Request $request
- * @param Response $response
- */
-//$cradle->on('developer-update', include __DIR__ . '/events/update.php');
-
-/**
- * CLI developer server
- *
- * @param Request $request
- * @param Response $response
- */
-//$cradle->on('developer-server', include __DIR__ . '/events/server.php');
-
-/**
- * CLI app generate
- *
- * @param Request $request
- * @param Response $response
- */
-//$cradle->on('developer-generate-app', include __DIR__ . '/events/generate/app.php');
-
-/**
- * CLI module generate
- *
- * @param Request $request
- * @param Response $response
- */
-//$cradle->on('developer-generate-module', include __DIR__ . '/events/generate/module.php');
-
-/**
- * CLI admin generate
- *
- * @param Request $request
- * @param Response $response
- */
-//$cradle->on('developer-generate-admin', include __DIR__ . '/events/generate/admin.php');
-
-/**
- * CLI REST generate
- *
- * @param Request $request
- * @param Response $response
- */
-//$cradle->on('developer-generate-rest', include __DIR__ . '/events/generate/rest.php');
-
-/**
- * CLI SQL generate
- *
- * @param Request $request
- * @param Response $response
- */
-//$cradle->on('developer-generate-sql', include __DIR__ . '/events/generate/sql.php');
-
-/**
- * CLI Elastic generate
- *
- * @param Request $request
- * @param Response $response
- */
-//$cradle->on('developer-generate-elastic', include __DIR__ . '/events/generate/elastic.php');
+$cradle->on('sql-populate', include __DIR__ . '/events/sql/populate.php');

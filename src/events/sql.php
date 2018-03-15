@@ -42,5 +42,5 @@ return function ($request, $response) {
         $request->setStage($data);
     }
 
-    $this->trigger('elastic-' . $event, $request, $response);
+    $this->trigger('sql-' . $event, $request, $response);
 };
