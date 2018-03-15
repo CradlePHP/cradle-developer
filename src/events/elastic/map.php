@@ -19,6 +19,13 @@ use Cradle\Storm\SqlFactory;
  * @param Response $response
  */
 return function ($request, $response) {
+    $service = $this->package('global')->service('elastic-main');
+
+    if (!$service) {
+        CommandLine::error('ElasticSearch is not enabled. Check config/services.php');
+        return;
+    }
+    
     CommandLine::system('Mapping Elastic...');
 
     //we only want to consider active packages
