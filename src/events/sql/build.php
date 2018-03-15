@@ -58,7 +58,7 @@ return function ($request, $response) {
         $type = $package->getPackageType();
         //skip pseudo packages
         if ($type === 'pseudo') {
-            CommandLine::warning(sprintf('Skipping %s', $package));
+            CommandLine::warning(sprintf('Skipping %s', $name));
             continue;
         }
 
