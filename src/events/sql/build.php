@@ -7,7 +7,7 @@
  * distributed with this package.
  */
 
-use Cradle\CommandLine;
+use Cradle\Framework\CommandLine;
 use Cradle\Event\EventHandler;
 
 /**
