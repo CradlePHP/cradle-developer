@@ -186,9 +186,7 @@ $cradle->on('package-list', include __DIR__ . '/events/package/list.php');
 $cradle->on('package-remove', include __DIR__ . '/events/package/remove.php');
 
 /**
- * $ cradle package search
- * $ cradle package search q=cradle-foo
- * $ cradle package search p=2
+ * $ cradle package search foobar
  *
  * @param Request $request
  * @param Response $response
