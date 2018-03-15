@@ -38,18 +38,14 @@ return function ($request, $response) {
 
     //get the public path
     $public = cradle('global')->path('public');
-
-    $bower = $request->getStage('include-bower');
-    $upload = $request->getStage('include-upload');
-
     $pattern = '(\.htaccess)|(\.php)|(DS_Store)';
 
-    if(!$request->hasStage('include-bower')) {
-        $pattern .= '|(bower_components)';
+    if(!$request->hasStage('include-yarn')) {
+        $pattern .= '|(\/components)';
     }
 
     if(!$request->hasStage('include-upload')) {
-        $pattern .= '|(upload)';
+        $pattern .= '|(\/upload)';
     }
 
     //get all the files
@@ -63,8 +59,6 @@ return function ($request, $response) {
 
         //get the file string
         $file = $path->getPathname();
-
-
 
         //there's no point pushing these things
         if (preg_match('/' . $pattern . '/', $file)) {
