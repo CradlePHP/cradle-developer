@@ -1,6 +1,6 @@
 <?php //-->
 /**
- * This file is part of the Cradle PHP Kitchen Sink Faucet Project.
+ * This file is part of the Cradle PHP Library.
  * (c) 2016-2018 Openovate Labs
  *
  * Copyright and license information can be found at LICENSE.txt
@@ -8,10 +8,11 @@
  */
 
 use Cradle\Framework\CommandLine;
-use Cradle\Module\Utility\ServiceFactory;
+use Cradle\Event\EventHandler;
 
 /**
- * CLI clear index
+ * $ cradle elastic populate
+ * $ cradle elastic populate package=foo/bar
  *
  * @param Request $request
  * @param Response $response
@@ -23,48 +24,56 @@ return function ($request, $response) {
         CommandLine::error('ElasticSearch is not enabled. Check config/services.php');
         return;
     }
+    
+    CommandLine::system('Populating Elastic...');
 
-    CommandLine::system('Building ElasticSearch...');
+    //we only want to consider active packages
+    $packages = $this->getPackages();
 
-    $objects = array_keys(ServiceFactory::get('elastic'));
+    //if we just want to populate one package
+    if($request->hasStage('package')) {
+        $package = $request->getStage('package');
+        //if it is not an installed package
+        if (!isset($packages[$package])) {
+            CommandLine::error(sprintf(
+                '%s is not installed. Try `$ cradle %s install`',
+                $package,
+                $package
+            ));
+        }
 
-    foreach ($objects as $object) {
-        CommandLine::info('Indexing ' . $object . '...');
+        $packages = [ $package => $packages[$package] ];
+    }
 
-        $sql = ServiceFactory::get($object, 'sql');
-        $elastic = ServiceFactory::get($object, 'elastic');
+    //loop through the packages
+    foreach ($packages as $name => $package) {
+        $type = $package->getPackageType();
+        //skip pseudo packages
+        if ($type === 'pseudo') {
+            CommandLine::warning(sprintf('Skipping %s', $name));
+            continue;
+        }
 
-        $i = 0;
-        $working = false;
-        do {
-            CommandLine::info('  - Indexing ' . $object . ': ' . $i . '-' . ($i + 100));
+        //path is name
+        $path = $name;
+        if ($type === 'root') {
+            $path = substr($path, 1);
+        }
 
-            $results = $sql->search([
-                'start' => $i,
-                'range' => 100
-            ]);
+        CommandLine::info(sprintf('Populating %s', $name));
+        list($author, $package) = explode('/', $path, 2);
+        $event = sprintf('%s-%s-populate-elastic', $author, $package);
+        $this->trigger($event, $request, $response);
 
-            $rows = $results['rows'];
-            $total = $results['total'];
-
-            foreach ($rows as $row) {
-                $primary = $object . '_id';
-
-                if ($elastic->create($row[$primary]) === false) {
-                    if(!$working) {
-                        //because there is no reason to continue;
-                        CommandLine::warning('No index server found. Aborting...');
-                        return;
-                    }
-
-                    CommandLine::warning($row[$primary] . ' failed to insert. Skipping...');
-                    continue;
-                }
-
-                $working = true;
-            }
-
-            $i += 100;
-        } while ($i < $total);
+        switch ($this->getEventHandler()->getMeta()) {
+            case EventHandler::STATUS_NOT_FOUND:
+                CommandLine::warning(sprintf('%s does not have a populate Elastic handler. Skipping.', $name));
+                break;
+            case EventHandler::STATUS_OK:
+            case EventHandler::STATUS_INCOMPLETE:
+            default:
+                CommandLine::success(sprintf('%s Elastic was populated.', $name));
+                break;
+        }
     }
 };

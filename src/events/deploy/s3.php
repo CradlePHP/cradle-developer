@@ -7,7 +7,7 @@
  * distributed with this package.
  */
 
-use Cradle\CommandLine\Index as CommandLine;
+use Cradle\Framework\CommandLine;
 use Cradle\Module\Utility\File;
 
 use Aws\S3\S3Client;

@@ -1,6 +1,6 @@
 <?php //-->
 /**
- * This file is part of the Cradle PHP Kitchen Sink Faucet Project.
+ * This file is part of the Cradle PHP Library.
  * (c) 2016-2018 Openovate Labs
  *
  * Copyright and license information can be found at LICENSE.txt
@@ -12,7 +12,8 @@ use Cradle\Event\EventHandler;
 use Cradle\Storm\SqlFactory;
 
 /**
- * CLI clear index
+ * $ cradle sql flush
+ * $ cradle sql flush package=foo/bar
  *
  * @param Request $request
  * @param Response $response
@@ -20,25 +21,48 @@ use Cradle\Storm\SqlFactory;
 return function ($request, $response) {
     CommandLine::system('Flushing SQL...');
 
+    $service = $this->package('global')->service('sql-main');
+    $database = SqlFactory::load($service);
+
+    //truncate all tables
+    $tables = $database->getTables();
+
+    //whether to ask questions
+    $force = $request->hasStage('f') || $request->hasStage('force');
+
+    $continue = true;
+    if (!empty($tables) && !$force) {
+        $answer = CommandLine::input('This will truncate tables in your existing database. Are you sure?(y)', 'y');
+        if ($answer !== 'y') {
+            $continue = false;
+        }
+    }
+
+    if (!$continue) {
+        CommandLine::warning('Aborting...');
+        return;
+    }
+
     //we only want to consider active packages
     $packages = $this->getPackages();
 
     //if we just want to flush one package
     if($request->hasStage('package')) {
-        $package = $request->getStage('package');
+        $name = $request->getStage('package');
+
         //if it is not an installed package
-        if (!isset($packages[$package])) {
+        if (!isset($packages[$name])) {
             CommandLine::error(sprintf(
                 '%s is not installed. Try `$ cradle %s install`',
-                $package,
-                $package
+                $name,
+                $name
             ));
         }
 
-        $type = $package->getPackageType();
+        $type = $packages[$name]->getPackageType();
         //skip pseudo packages
         if ($type === 'pseudo') {
-            CommandLine::warning(sprintf('Skipping %s', $package));
+            CommandLine::warning(sprintf('Skipping %s', $name));
             return;
         }
 
@@ -60,11 +84,7 @@ return function ($request, $response) {
         return;
     }
 
-    $service = $this->package('global')->service('sql-main');
-    $database = SqlFactory::load($service);
-
-    //truncate all tables
-    $tables = $database->getTables();
+    // iterate on each tables
     foreach ($tables as $table) {
         CommandLine::info(sprintf('Flushing %s', $table));
         $database->query('TRUNCATE TABLE `' . $table . '`;');

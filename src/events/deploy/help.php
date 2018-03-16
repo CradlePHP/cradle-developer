@@ -7,7 +7,7 @@
  * distributed with this package.
  */
 
-use Cradle\CommandLine\Index as CommandLine;
+use Cradle\Framework\CommandLine;
 
 /**
  * CLI help menu

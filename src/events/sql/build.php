@@ -1,23 +1,31 @@
 <?php //-->
 /**
- * This file is part of the Cradle PHP Kitchen Sink Faucet Project.
+ * This file is part of the Cradle PHP Library.
  * (c) 2016-2018 Openovate Labs
  *
  * Copyright and license information can be found at LICENSE.txt
  * distributed with this package.
  */
 
-use Cradle\CommandLine;
+use Cradle\Framework\CommandLine;
 use Cradle\Event\EventHandler;
+use Cradle\Storm\SqlFactory;
 
 /**
- * CLI populates database with dummy data
+ * $ cradle sql build
+ * $ cradle sql build package=foo/bar
  *
  * @param Request $request
  * @param Response $response
  */
 return function ($request, $response) {
     CommandLine::system('Building SQL...');
+
+    $service = $this->package('global')->service('sql-main');
+    $database = SqlFactory::load($service);
+
+    //get tables
+    $tables = $database->getTables();
 
     //whether to ask questions
     $force = $request->hasStage('f') || $request->hasStage('force');
@@ -58,7 +66,7 @@ return function ($request, $response) {
         $type = $package->getPackageType();
         //skip pseudo packages
         if ($type === 'pseudo') {
-            CommandLine::warning(sprintf('Skipping %s', $package));
+            CommandLine::warning(sprintf('Skipping %s', $name));
             continue;
         }
 
