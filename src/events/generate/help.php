@@ -10,13 +10,11 @@
 use Cradle\CommandLine\Index as CommandLine;
 
 /**
- * CLI help menu
+ * $ cradle generate help
  *
  * @param Request $request
  * @param Response $response
- *
- * @return string
  */
 return function ($request, $response) {
-    
+
 };
