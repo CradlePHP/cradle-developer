@@ -1,4 +1,11 @@
 <?php //-->
+/**
+ * This file is part of the Cradle PHP Library.
+ * (c) 2016-2018 Openovate Labs
+ *
+ * Copyright and license information can be found at LICENSE.txt
+ * distributed with this package.
+ */
 
 use Cradle\Framework\CommandLine;
 use Cradle\Event\EventHandler;
@@ -21,7 +28,12 @@ return function($request, $response) {
     $active = $this->getPackages();
 
     //these are all the installed packages
-    $installed = $this->package('global')->config('packages', 'installed');
+    $installed = $this->package('global')->config('packages/installed');
+
+    // if installed is empty
+    if (!is_array($installed)) {
+        $installed = [];
+    }
 
     //it's already installed
     if (isset($installed[$name])) {
@@ -33,7 +45,7 @@ return function($request, $response) {
     }
 
     // if package is not yet installed
-    if (!$this->isPackage($name)) {
+    if (!isset($active[$name])) {
         // temporarily register the package
         $package = $this->register($name)->package($name);
     } else {
@@ -41,11 +53,13 @@ return function($request, $response) {
         $package = $this->package($name);    
     }
 
-    $available = $package->getPackageVersion();
-    $active = isset($active[$name]);
+    // get current version
+    $current = $package->getPackageVersion();
+    // get available version
+    $available = $current;
 
     //if available is 0.0.0
-    if ($available === '0.0.0') {
+    if ($current === '0.0.0') {
         CommandLine::info(sprintf(
             '%s was not found in your project. Trying to search from packagist.org...',
             $name
@@ -92,8 +106,11 @@ return function($request, $response) {
         // know where to place their cache files...
         $home = dirname(__DIR__) . '/../../../../bin/composer';
 
-        // run composer install command
+        // run composer require command
         (new Command($home))->require(sprintf('%s:%s', $name, $available));
+
+        // re-register the package to load the package install events
+        $package = $this->register($name)->package($name);
     }
 
     CommandLine::info('Installing ' . $name . ' -> ' . $available);
@@ -120,7 +137,7 @@ return function($request, $response) {
     }
 
     // install package
-    $installed[$name] = Package::install($name, $available);
+    $installed[$name] = Package::install($name, $current);
 
     // get packages config path
     $file = $this->package('global')->path('config') . '/packages';
