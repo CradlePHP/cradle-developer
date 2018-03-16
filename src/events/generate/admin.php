@@ -10,7 +10,7 @@
 use Cradle\Framework\CommandLine;
 
 /**
- * CLI help menu
+ * $ cradle generate admin foobar
  *
  * @param Request $request
  * @param Response $response

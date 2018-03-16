@@ -19,7 +19,7 @@ use Aws\S3\S3Client;
  * @param Response $response
  */
 return function ($request, $response) {
-    $cdn = cradle('global')->service('s3-main');
+    $cdn = $this->package('global')->service('s3-main');
 
     if (!$cdn) {
         CommandLine::warning('CDN is not setup. Check config/services.php. Aborting.');
@@ -37,7 +37,7 @@ return function ($request, $response) {
     ]);
 
     //get the public path
-    $public = cradle('global')->path('public');
+    $public = $this->package('global')->path('public');
     $pattern = '(\.htaccess)|(\.php)|(DS_Store)';
 
     if(!$request->hasStage('include-yarn')) {

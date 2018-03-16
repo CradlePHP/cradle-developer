@@ -111,7 +111,7 @@ return function($request, $response) {
     $available = '0.0.1';
     if ($type === 'module') {
         //these are all the module packages
-        $folder = cradle('global')->path('module');
+        $folder = $this->package('global')->path('module');
         $modules = scandir($folder);
         foreach ($modules as $package) {
             //package name
@@ -133,8 +133,8 @@ return function($request, $response) {
         }
     } else {
         //these are vendor packages
-        $folder = cradle('global')->path('vendor');
-        $file = cradle('global')->path('root') . '/composer.lock';
+        $folder = $this->package('global')->path('vendor');
+        $file = $this->package('global')->path('root') . '/composer.lock';
         $composer = file_get_contents($file);
         $composer = json_decode($composer, true);
         foreach ($composer['packages'] as $package) {
@@ -170,7 +170,7 @@ return function($request, $response) {
     //    ));
     //});
 
-    $file = cradle('global')->path('config') . '/packages/installed.php';
+    $file = $this->package('global')->path('config') . '/packages/installed.php';
     $content = "<?php //-->\nreturn ".var_export($installed, true);
     //file_put_contents($file, $content);
 };

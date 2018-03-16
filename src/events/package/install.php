@@ -73,7 +73,7 @@ return function($request, $response) {
 
     //$installed[$package['name']] = Package::install($package['name'], $package['available']);
 
-    $file = cradle('global')->path('config') . '/packages/installed.php';
+    $file = $this->package('global')->path('config') . '/packages/installed.php';
     $content = "<?php //-->\nreturn ".var_export($installed, true);
     //file_put_contents($file, $content);
 };

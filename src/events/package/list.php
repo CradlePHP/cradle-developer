@@ -85,14 +85,14 @@ return function($request, $response) {
     $active = $this->getPackages();
 
     //these are all the installed packages
-    $file = cradle('global')->path('config') . '/packages/installed.php';
+    $file = $this->package('global')->path('config') . '/packages/installed.php';
     $installed = [];
     if (file_exists($file)) {
         $installed = include $file;
     }
 
     //these are all the module packages
-    $folder = cradle('global')->path('module');
+    $folder = $this->package('global')->path('module');
     $modules = scandir($folder);
     foreach ($modules as $package) {
         if ($package === '.'
@@ -123,8 +123,8 @@ return function($request, $response) {
     }
 
     //these are vendor packages
-    $folder = cradle('global')->path('vendor');
-    $file = cradle('global')->path('root') . '/composer.lock';
+    $folder = $this->package('global')->path('vendor');
+    $file = $this->package('global')->path('root') . '/composer.lock';
     $composer = file_get_contents($file);
     $composer = json_decode($composer, true);
     foreach ($composer['packages'] as $package) {

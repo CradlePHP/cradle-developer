@@ -17,7 +17,7 @@ use Cradle\Framework\CommandLine;
  */
 return function ($request, $response) {
     $cwd = $request->getServer('PWD');
-    $deploy = cradle('global')->config('deploy');
+    $deploy = $this->package('global')->config('deploy');
 
     if (empty($deploy)) {
         CommandLine::warning('Deploy is not setup. Check config/deploy.php. Aborting.');
