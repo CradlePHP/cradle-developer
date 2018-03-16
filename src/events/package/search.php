@@ -23,9 +23,12 @@ return function($request, $response) {
     $packagist = new Packagist();
 
     // query set?
-    if ($request->hasStage('q')) {
+    if ($request->hasStage(0)) {
         // set query
-        $packagist->setQuery($request->getStage('q'));
+        $packagist->setQuery($request->getStage(0));
+    } else {
+        // set default query
+        $packagist->setQuery('');
     }
 
     // type set?
