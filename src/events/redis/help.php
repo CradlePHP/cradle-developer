@@ -1,6 +1,6 @@
 <?php //-->
 /**
- * This file is part of the Cradle PHP Kitchen Sink Faucet Project.
+ * This file is part of the Cradle PHP Library.
  * (c) 2016-2018 Openovate Labs
  *
  * Copyright and license information can be found at LICENSE.txt
@@ -10,7 +10,7 @@
 use Cradle\Framework\CommandLine;
 
 /**
- * CLI help menu
+ * $ cradle redis help
  *
  * @param Request $request
  * @param Response $response
@@ -18,5 +18,12 @@ use Cradle\Framework\CommandLine;
  * @return string
  */
 return function ($request, $response) {
-    
+    CommandLine::warning('Redis Commands:');
+    CommandLine::output(PHP_EOL);
+
+    CommandLine::success('bin/cradle redis flush');
+    CommandLine::info(' Clears the Redis cache');
+    CommandLine::info(' Example: bin/cradle redis flush');
+    CommandLine::info(' Example: bin/cradle redis flush package=foo/bar');
+    CommandLine::output(PHP_EOL);
 };
