@@ -12,7 +12,30 @@
  * @param Request $request
  * @param Response $response
  */
-$this->on('module-[[name]]-install', function ($request, $response) {});
+$this->on('module-[[name]]-install', function ($request, $response) {
+    //----------------------------//
+    // Install By Folder
+    //custom name of this package
+    $name = 'cradlephp/cradle-profile';
+
+    //if it's already installed
+    if ($this->package('global')->config('versions', $name)) {
+        //CTA to call update instead
+        CommandLine::error(sprintf(
+            '%s is already installed. run `cradle %s update` instead',
+            $name,
+            $name
+        ));
+    }
+
+    // install package
+    $version = Package::install($name, '0.0.0');
+    //notify user
+    CommandLine::success(sprintf('Installed %s -> %s', $name, $version));
+
+    // update the config
+    $this->package('global')->config('versions', $name, $version);
+});
 
 /**
  * $ cradle package update /module/[[name]]

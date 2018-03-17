@@ -1,9 +1,10 @@
 <?php //-->
 return [
-    'enviroment' => 'dev',
+    'admin' => '/admin',
     'debug_mode' => E_ALL,
-    'server_timezone' => 'GMT',
+    'environment' => 'dev',
     'error_email' => '<EMAIL ADDRESS>',
     'i18n' => 'en_US',
-    'name' => 'Cradle Kitchen Sink'
+    'name' => 'Custom Project',
+    'server_timezone' => 'GMT'
 ];
