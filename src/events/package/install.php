@@ -28,7 +28,7 @@ return function($request, $response) {
     $active = $this->getPackages();
 
     //it's already installed
-    if ($this->package('global')->config('versions', $name)) {
+    if ($this->package('global')->config('version', $name)) {
         //CTA to call update instead
         CommandLine::error(sprintf(
             'Package is already installed. run `cradle package update %s` instead',
@@ -138,6 +138,6 @@ return function($request, $response) {
     $version = Package::install($name, $current);
 
     // update the config
-    $this->package('global')->config('versions', $name, $version);
+    $this->package('global')->config('version', $name, $version);
     CommandLine::info($name . ' was updated to ' . $available);
 };
