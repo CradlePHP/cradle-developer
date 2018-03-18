@@ -40,6 +40,14 @@ return function ($request, $response) {
     $this->on('install', include __DIR__ . '/events/install.php');
 
     /**
+     * $ cradle update
+     *
+     * @param Request $request
+     * @param Response $response
+     */
+    $this->on('update', include __DIR__ . '/events/update.php');
+
+    /**
      * $ cradle deploy
      *
      * @param Request $request

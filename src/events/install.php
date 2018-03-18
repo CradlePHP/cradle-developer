@@ -88,7 +88,7 @@ return function ($request, $response) {
         CommandLine::system('Setting up config files...');
 
 
-        $paths = scandir(__DIR__ . '/config', 0);
+        $paths = scandir(__DIR__ . '/../template/config');
         foreach($paths as $path) {
             if($path === '.' || $path === '..' || substr($path, -4) !== '.php') {
                 continue;
@@ -155,13 +155,9 @@ return function ($request, $response) {
         }
 
         //now run the update
-        $this->trigger('developer-update', $request, $response);
+        $this->trigger('update', $request, $response);
     }
 
     CommandLine::info('Recommended actions:');
     CommandLine::info(' - yarn build');
-    CommandLine::info(' - bin/cradle faucet populate-sql');
-    CommandLine::info(' - bin/cradle faucet flush-elastic');
-    CommandLine::info(' - bin/cradle faucet map-elastic');
-    CommandLine::info(' - bin/cradle faucet populate-elastic');
 };
