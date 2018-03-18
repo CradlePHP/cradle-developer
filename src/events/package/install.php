@@ -27,16 +27,8 @@ return function($request, $response) {
     //these are all the active packages
     $active = $this->getPackages();
 
-    //these are all the installed packages
-    $installed = $this->package('global')->config('packages/installed');
-
-    // if installed is empty
-    if (!is_array($installed)) {
-        $installed = [];
-    }
-
     //it's already installed
-    if (isset($installed[$name])) {
+    if ($this->package('global')->config('versions', $name)) {
         //CTA to call update instead
         CommandLine::error(sprintf(
             'Package is already installed. run `cradle package update %s` instead',
@@ -50,7 +42,7 @@ return function($request, $response) {
         $package = $this->register($name)->package($name);
     } else {
         // load the package space
-        $package = $this->package($name);    
+        $package = $this->package($name);
     }
 
     // get current version
@@ -79,7 +71,7 @@ return function($request, $response) {
 
         $versions = [];
         foreach($results['packages'][$name] as $version => $info) {
-            if (preg_match('/^[0-9.]+$/i', $version)) {
+            if (preg_match('/^[0-9\.]+$/i', $version)) {
                 $versions[] = $version;
             }
         }
@@ -97,10 +89,13 @@ return function($request, $response) {
         $available = array_pop($versions);
 
         CommandLine::info(sprintf(
-            '%s@%s was found. Installing package via composer...', 
-            $name, 
+            '%s@%s was found. Installing package via composer...',
+            $name,
             $available
         ));
+
+        //increase memory limit
+        ini_set('memory_limit', -1);
 
         // get the composer home, composer needs to
         // know where to place their cache files...
@@ -112,8 +107,6 @@ return function($request, $response) {
         // re-register the package to load the package install events
         $package = $this->register($name)->package($name);
     }
-
-    CommandLine::info('Installing ' . $name . ' -> ' . $available);
 
     // path is name
     $path = $name;
@@ -127,31 +120,24 @@ return function($request, $response) {
     // get author and package
     list($author, $package) = explode('/', $path, 2);
     // formulate event handler
-    $event = sprintf('%s-%s-package-install', $author, $package);
+    $event = sprintf('%s-%s-install', $author, $package);
     // trigger event handler
     $this->trigger($event, $request, $response);
 
-    // handler does not exists?
-    if ($this->getEventHandler()->getMeta() === EventHandler::STATUS_NOT_FOUND) {
-        CommandLine::warning(sprintf('%s does not have a package install handler. Skipping.', $name));
+    //event result cases
+    switch($this->getEventHandler()->getMeta()) {
+        case EventHandler::STATUS_INCOMPLETE:
+            return;
+        case EventHandler::STATUS_OK:
+        case EventHandler::STATUS_NOT_FOUND:
+        default:
+            break;
     }
 
     // install package
-    $installed[$name] = Package::install($name, $current);
-
-    // get packages config path
-    $file = $this->package('global')->path('config') . '/packages';
-
-    // directory not exits?
-    if (!is_dir($file)) {
-        // make it ..
-        mkdir($file, 0777);
-    }
-
-    // set installed file config
-    $file .= '/installed.php';
+    $version = Package::install($name, $current);
 
     // update the config
-    $content = "<?php //-->\nreturn ".var_export($installed, true).';';
-    file_put_contents($file, $content);
+    $this->package('global')->config('versions', $name, $version);
+    CommandLine::info($name . ' was updated to ' . $available);
 };
