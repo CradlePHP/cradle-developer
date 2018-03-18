@@ -11,7 +11,6 @@ use Cradle\Framework\CommandLine;
 use Cradle\Event\EventHandler;
 use Cradle\Composer\Command;
 use Cradle\Composer\Packagist;
-use Cradle\Package\System\Package;
 use Cradle\Curl\Rest;
 
 /**
@@ -124,20 +123,11 @@ return function($request, $response) {
     // trigger event handler
     $this->trigger($event, $request, $response);
 
-    //event result cases
-    switch($this->getEventHandler()->getMeta()) {
-        case EventHandler::STATUS_INCOMPLETE:
-            return;
-        case EventHandler::STATUS_OK:
-        case EventHandler::STATUS_NOT_FOUND:
-        default:
-            break;
+    if ($response->hasResults('version')) {
+        $version = $response->getResults('version');
+        CommandLine::success(sprintf('%s was installed to %s', $name, $version));
+        return;
     }
 
-    // install package
-    $version = Package::install($name, $current);
-
-    // update the config
-    $this->package('global')->config('version', $name, $version);
-    CommandLine::info($name . ' was updated to ' . $available);
+    CommandLine::success(sprintf('%s was installed', $name));
 };
