@@ -8,6 +8,7 @@
  */
 
 use Cradle\Framework\CommandLine;
+use Cradle\Framework\Package;
 use Cradle\Event\EventHandler;
 use Cradle\Composer\Command;
 use Cradle\Composer\Packagist;
@@ -20,114 +21,182 @@ use Cradle\Curl\Rest;
  * @param Response $response
  */
 return function($request, $response) {
-    //this is the package name
+    // get the pacakge name
     $name = $request->getStage(0);
+    // get the package version
+    $version = $request->getStage(1);
 
-    //these are all the active packages
-    $active = $this->getPackages();
+    // empty package name?
+    if (!$name) {
+        CommandLine::error(
+            'Not enough arguments. Usage: `cradle package install vendor/package`'
+        );
+    }
 
-    //it's already installed
+    // valid version?
+    if ($version && !preg_match('/^[0-9\.]+$/i', $version)) {
+        CommandLine::error(
+            'Unable to install package. Version is not valid version format should be 0.0.*.'
+        );
+    }
+
+    // does the package installed already?
     if ($this->package('global')->config('version', $name)) {
-        //CTA to call update instead
+        // let them update instead
         CommandLine::error(sprintf(
-            'Package is already installed. run `cradle package update %s` instead',
+            'Package is already installed. Run `cradle package update %s` instead',
             $name
         ));
     }
 
-    // if package is not yet installed
-    if (!isset($active[$name])) {
-        // temporarily register the package
+    // get active packages
+    $packages = $this->getPackages();
+
+    // check if package is registered
+    if (!isset($packages[$name])) {
+        // manually register the package
         $package = $this->register($name)->package($name);
     } else {
-        // load the package space
+        // get the package information
         $package = $this->package($name);
     }
 
-    // get current version
-    $current = $package->getPackageVersion();
-    // get available version
-    $available = $current;
+    // get the packaage type
+    $type = $package->getPackageType();
 
-    //if available is 0.0.0
-    if ($current === '0.0.0') {
-        CommandLine::info(sprintf(
-            '%s was not found in your project. Trying to search from packagist.org...',
+    // if it's a pseudo package
+    if ($type === Package::TYPE_PSEUDO) {
+        CommandLine::error(sprintf(
+            'Unable to install pseudo package %s.',
             $name
         ));
+    }
 
-        //it means it doesn't exists
-        //and we should packagist search
-        $results = (new Packagist())->get($name);
-
-        //no package?
-        if (!isset($results['packages'][$name])) {
+    // if it's a root package
+    if ($type === Package::TYPE_ROOT) {
+        // directory doesn't exists?
+        if (!is_dir($package->getPackagePath())) {
             CommandLine::error(sprintf(
-                '%s was not found in your project or on packagist.org',
+                'Unable to install package. Root package %s does not exists.',
                 $name
             ));
         }
 
-        $versions = [];
-        foreach($results['packages'][$name] as $version => $info) {
-            if (preg_match('/^[0-9\.]+$/i', $version)) {
-                $versions[] = $version;
+        // bootstrap file exists?
+        if (!file_exists(
+            sprintf(
+                '%s/%s',
+                $package->getPackagePath(),
+                '.cradle.php'
+            )
+        )) {
+            CommandLine::error(sprintf(
+                'Unable to install root package %s. Bootstrap file .cradle.php does not exists.',
+                $name
+            ));
+        }
+
+        // just let the package process the given version
+        $request->setStage('version', $version);
+    }
+
+    // if it's a vendor package
+    if ($type === Package::TYPE_VENDOR) {
+        // we need to check from packagist
+        $results = (new Packagist())->get($name);
+
+        // if results is empty
+        if (!isset($results['packages'][$name])) {
+            CommandLine::error(sprintf(
+                'Unable to install vendor package %s. Package does not exists.',
+                $name
+            ));
+        }
+
+        // if version is not set
+        if (!$version) {
+            // look for valid versions e.g 0.0.1
+            $versions = [];
+            foreach($results['packages'][$name] as $version => $info) {
+                if (preg_match('/^[0-9\.]+$/i', $version)) {
+                    $versions[] = $version;
+                }
+            }
+
+            // if no valid version
+            if (empty($versions)) {
+                CommandLine::error(sprintf(
+                    'Unable to install vendor package %s. Could not find a valid version.',
+                    $name
+                ));
+            }
+
+            //sort versions, and get the latest one
+            usort($versions, 'version_compare');
+            $version = array_pop($versions);
+        } else {
+            // if version does not exists
+            if (!isset($results['packages'][$name][$version])) {
+                CommandLine::error(sprintf(
+                    'Unable to install vendor package %s. Could not find the provided version %s.',
+                    $name,
+                    $version
+                ));
             }
         }
 
-        //no versions?
-        if (empty($versions)) {
-            CommandLine::error(sprintf(
-                'Could not find a valid version for %s',
-                $name
-            ));
-        }
-
-        //sort versions
-        usort($versions, 'version_compare');
-        $available = array_pop($versions);
-
         CommandLine::info(sprintf(
-            '%s@%s was found. Installing package via composer...',
+            'Requiring vendor package %s@%s via composer.',
             $name,
-            $available
+            $version
         ));
 
         //increase memory limit
         ini_set('memory_limit', -1);
 
-        // get the composer home, composer needs to
-        // know where to place their cache files...
-        $home = dirname(__DIR__) . '/../../../../bin/composer';
+        // composer needs to know where to place cache files
+        $composer = dirname(__DIR__) . '/../../../../bin/composer';
 
         // run composer require command
-        (new Command($home))->require(sprintf('%s:%s', $name, $available));
+        (new Command($composer))->require(sprintf('%s:%s', $name, $version));
 
-        // re-register the package to load the package install events
+        // register the package again to load up installation events
         $package = $this->register($name)->package($name);
     }
 
-    // path is name
-    $path = $name;
-
-    // local package?
-    if (strpos($path, '/') === 0) {
-        // remove trailing /
-        $path = substr($path, 1);
+    // if it's a vendor package
+    if ($type === Package::TYPE_VENDOR) {
+        list($vendor, $package) = explode('/', $name, 2);
+    } else {
+        //it's a root package
+        list($vendor, $package) = explode('/', substr($name, 1), 2);
     }
 
-    // get author and package
-    list($author, $package) = explode('/', $path, 2);
-    // formulate event handler
-    $event = sprintf('%s-%s-install', $author, $package);
-    // trigger event handler
+    // trigger event
+    $event = sprintf('%s-%s-%s', $vendor, $package, 'install');
     $this->trigger($event, $request, $response);
 
+    // if no event was triggered
+    $status = $this->getEventHandler()->getMeta();
+    if($status === EventHandler::STATUS_NOT_FOUND) {
+        return;
+    }
+
+    // if error
+    if ($response->isError()) {
+        CommandLine::error($response->getMessage(), false);
+        return;
+    }
+
+    // if version
     if ($response->hasResults('version')) {
+        // this means that package updated it's version by itself
         $version = $response->getResults('version');
         CommandLine::success(sprintf('%s was installed to %s', $name, $version));
         return;
     }
 
+    // we should update the package version manually
+    $this->package('global')->config('version', $name, $version);
     CommandLine::success(sprintf('%s was installed', $name));
 };
