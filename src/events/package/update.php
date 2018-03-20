@@ -40,7 +40,7 @@ return function($request, $response) {
     }
 
     // does the package installed already?
-    if (!$this->package('global')->config('version', $name)) {
+    if (!$this->package('global')->config('packages', $name)) {
         // let them update instead
         CommandLine::error(sprintf(
             'Package is not yet installed. Run `cradle package install %s` instead.',
@@ -189,14 +189,14 @@ return function($request, $response) {
             ));
 
             return;
-        } else {
-            // let them know that the package is already installed
-            CommandLine::warning(sprintf(
-                'Package %s@%s is already installed. Skipping.',
-                $name,
-                $version
-            ));
         }
+        
+        // let them know that the package is already installed
+        CommandLine::warning(sprintf(
+            'Package %s@%s is already installed. Skipping.',
+            $name,
+            $version
+        ));
     }
 
     // if it's a vendor package

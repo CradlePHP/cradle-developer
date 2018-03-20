@@ -22,7 +22,7 @@ return function ($request, $response) {
     //these are all the active packages
     $active = $this->getPackages();
     //these are the installed packages
-    $installed = $this->package('global')->config('version');
+    $installed = $this->package('global')->config('packages');
 
     foreach ($active as $name => $package) {
         $type = $package->getPackageType();

@@ -147,13 +147,6 @@ return function ($request, $response) {
     }
 
     if(!$request->hasStage('skip-versioning')) {
-        $file = cradle('global')->path('config') . '/version.php';
-        //if there's a version file
-        if(file_exists($file)) {
-            //this is an install process so reset the versions
-            file_put_contents($file, '<?php return [];');
-        }
-
         //now run the update
         $this->trigger('update', $request, $response);
     }

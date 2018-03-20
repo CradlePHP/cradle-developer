@@ -40,7 +40,7 @@ return function($request, $response) {
     }
 
     // does the package installed already?
-    if ($this->package('global')->config('version', $name)) {
+    if ($this->package('global')->config('packages', $name)) {
         // let them update instead
         CommandLine::error(sprintf(
             'Package is already installed. Run `cradle package update %s` instead',

@@ -30,7 +30,7 @@ return function($request, $response) {
     }
 
     // if package is not installed
-    if (!$this->package('global')->config('version', $name)) {
+    if (!$this->package('global')->config('packages', $name)) {
         // let them update instead
         CommandLine::error(sprintf(
             'Unable to remove package %s. Package is not installed.',
@@ -91,23 +91,8 @@ return function($request, $response) {
     // first before proceeding to the actual vendor
     // removal.
 
-    // whether we should completly uninstall
-    // the package from vendor folder
-    $uninstall = false;
-
     // if it's a vendor package
     if ($type === Package::TYPE_VENDOR) {
-        // ask them if they wanted to permanently remove the package?
-        $answer = CommandLine::input(sprintf(
-            'Do you want to permanently remove %s from your vendor package?. Are you sure?(y)',
-            $name
-        ), 'y');
-        
-        // completely uninstall?
-        if ($answer !== 'n') {
-            $uninstall = true;
-        }
-
         list($vendor, $namespace) = explode('/', $name, 2);
     } else {
         //it's a root package
@@ -130,12 +115,12 @@ return function($request, $response) {
 
     // if error
     if ($response->isError()) {
-        // we should still continue
         CommandLine::error($response->getMessage(), false);
+        return;
     }
 
     // just ignore package related errors and proceed to package removal
-    if ($type === Package::TYPE_VENDOR && is_dir($package->getPackagePath()) && $uninstall) {
+    if ($type === Package::TYPE_VENDOR && is_dir($package->getPackagePath())) {
         //increase memory limit
         ini_set('memory_limit', -1);
 
@@ -143,7 +128,7 @@ return function($request, $response) {
         $composer = $this->package('global')->path('root') . '/vendor/bin/composer';
 
         // run composer require command
-        (new Command($composer))->remove(sprintf('%s', $name));
+        // (new Command($composer))->remove(sprintf('%s', $name));
 
         CommandLine::success(sprintf(
             'Package %s has been removed from your vendor packages.',
