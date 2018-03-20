@@ -86,6 +86,11 @@ return function($request, $response) {
         }
     }
 
+    // NOTE: If the package is a vendor package
+    // we need to trigger the package remove events
+    // first before proceeding to the actual vendor
+    // removal.
+
     // if it's a vendor package
     if ($type === Package::TYPE_VENDOR) {
         list($vendor, $namespace) = explode('/', $name, 2);
@@ -120,7 +125,7 @@ return function($request, $response) {
         ini_set('memory_limit', -1);
 
         // composer needs to know where to place cache files
-        $composer = dirname(__DIR__) . '/../../../../bin/composer';
+        $composer = $this->package('global')->path('root') . '/vendor/bin/composer';
 
         // run composer require command
         (new Command($composer))->remove(sprintf('%s', $name));

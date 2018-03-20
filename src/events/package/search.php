@@ -76,7 +76,6 @@ return function($request, $response) {
         }
 
         CommandLine::warning('Run: `$ cradle package install vendor/package` to install a package...');
-    
         return;
     }
 

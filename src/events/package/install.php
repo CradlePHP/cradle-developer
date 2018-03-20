@@ -12,7 +12,6 @@ use Cradle\Framework\Package;
 use Cradle\Event\EventHandler;
 use Cradle\Composer\Command;
 use Cradle\Composer\Packagist;
-use Cradle\Curl\Rest;
 
 /**
  * $ cradle package install foo/bar
@@ -159,7 +158,7 @@ return function($request, $response) {
         ini_set('memory_limit', -1);
 
         // composer needs to know where to place cache files
-        $composer = dirname(__DIR__) . '/../../../../bin/composer';
+        $composer = $this->package('global')->path('root') . '/vendor/bin/composer';
 
         // run composer require command
         (new Command($composer))->require(sprintf('%s:%s', $name, $version));
