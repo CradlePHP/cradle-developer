@@ -92,11 +92,7 @@ return function($request, $response) {
     $active = $this->getPackages();
 
     //these are all the installed packages
-    $file = $this->package('global')->path('config') . '/packages/installed.php';
-    $installed = [];
-    if (file_exists($file)) {
-        $installed = include $file;
-    }
+    $installed = $this->package('global')->config('packages');
 
     //these are all the module packages
     $folder = $this->package('global')->path('module');
@@ -116,8 +112,8 @@ return function($request, $response) {
         $available = $next($folder . '/' . $package . '/install');
         //current version
         $version = '0.0.0';
-        if (isset($installed[$name])) {
-            $version = $installed[$name];
+        if (isset($installed[$name]) && isset($installed[$name]['version'])) {
+            $version = $installed[$name]['version'];
         }
 
         $packages[$name] = [
@@ -145,8 +141,8 @@ return function($request, $response) {
         $available = $next($folder . '/' . $name . '/install');
         //current version
         $version = '0.0.0';
-        if (isset($installed[$name])) {
-            $version = $installed[$name];
+        if (isset($installed[$name]) && isset($installed[$name]['version'])) {
+            $version = $installed[$name]['version'];
         }
 
         $packages[$name] = [
