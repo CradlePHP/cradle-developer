@@ -64,7 +64,7 @@ return function($request, $response) {
     // if we have packages
     if (isset($packages['results'])
     && !empty($packages['results'])) {
-        CommandLine::info(sprintf('Found %s package(s)...', $packages['total']));
+        CommandLine::info(sprintf('Found %s package(s).', $packages['total']));
   
         // print each package
         foreach($packages['results'] as $package) {
@@ -75,7 +75,7 @@ return function($request, $response) {
             ));
         }
 
-        CommandLine::warning('Run: `$ cradle package install vendor/package` to install a package...');
+        CommandLine::warning('Run: `cradle package install vendor/package` to install a package.');
         return;
     }
 
