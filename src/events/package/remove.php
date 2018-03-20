@@ -91,8 +91,23 @@ return function($request, $response) {
     // first before proceeding to the actual vendor
     // removal.
 
+    // whether we should completly uninstall
+    // the package from vendor folder
+    $uninstall = false;
+
     // if it's a vendor package
     if ($type === Package::TYPE_VENDOR) {
+        // ask them if they wanted to permanently remove the package?
+        $answer = CommandLine::input(sprintf(
+            'Do you want to permanently remove %s from your vendor package?. Are you sure?(y)',
+            $name
+        ), 'y');
+        
+        // completely uninstall?
+        if ($answer !== 'n') {
+            $uninstall = true;
+        }
+
         list($vendor, $namespace) = explode('/', $name, 2);
     } else {
         //it's a root package
@@ -120,7 +135,7 @@ return function($request, $response) {
     }
 
     // just ignore package related errors and proceed to package removal
-    if ($type === Package::TYPE_VENDOR && is_dir($package->getPackagePath())) {
+    if ($type === Package::TYPE_VENDOR && is_dir($package->getPackagePath()) && $uninstall) {
         //increase memory limit
         ini_set('memory_limit', -1);
 
@@ -134,17 +149,5 @@ return function($request, $response) {
             'Package %s has been removed from your vendor packages.',
             $name
         ));
-    }
-
-    // load the config
-    $version = $this->package('global')->config('version');
-
-    // unset the package
-    if (isset($version[$name])) {
-        // remove package
-        unset($version[$name]);
-
-        // update the package
-        $this->package('global')->config('version', $version);
     }
 };
