@@ -51,13 +51,13 @@ return function($request, $response) {
 
     // get active packages
     $packages = $this->getPackages();
-
-    // check if package is registered
+    
+    // if package is not yet loaded
     if (!isset($packages[$name])) {
-        // manually register the package
+        // register temporary package space
         $package = $this->register($name)->package($name);
     } else {
-        // get the package information
+        // just load the registered package
         $package = $this->package($name);
     }
 
@@ -101,7 +101,7 @@ return function($request, $response) {
     }
 
     // if it's a vendor package
-    if ($type === Package::TYPE_VENDOR) {
+    if ($type === Package::TYPE_VENDOR && !is_dir($package->getPackagePath())) {
         // we need to check from packagist
         $results = (new Packagist())->get($name);
 
@@ -145,11 +145,15 @@ return function($request, $response) {
             }
         }
 
+        // let them know we're installing via composer
         CommandLine::info(sprintf(
-            'Requiring vendor package %s@%s via composer.',
+            'Installing the vendor package %s@%s via composer.',
             $name,
             $version
         ));
+
+        // and that it requires additional step to complete the installation
+        CommandLine::info('This will require additional steps to complete the installation.');
 
         //increase memory limit
         ini_set('memory_limit', -1);
@@ -160,8 +164,16 @@ return function($request, $response) {
         // run composer require command
         (new Command($composer))->require(sprintf('%s:%s', $name, $version));
 
-        // register the package again to load up installation events
-        $package = $this->register($name)->package($name);
+        // let them install the package manually
+        CommandLine::info('Package was added to your vendor packages.');
+
+        // let them know what they need to do next
+        CommandLine::info(sprintf(
+            'Run `cradle %s install` to complete the installation.',
+            $name
+        ));
+
+        return;
     }
 
     // if it's a vendor package
@@ -190,13 +202,11 @@ return function($request, $response) {
 
     // if version
     if ($response->hasResults('version')) {
-        // this means that package updated it's version by itself
+        // this means that the package itself updates it's version
         $version = $response->getResults('version');
         CommandLine::success(sprintf('%s was installed to %s', $name, $version));
         return;
     }
 
-    // we should update the package version manually
-    $this->package('global')->config('version', $name, $version);
     CommandLine::success(sprintf('%s was installed', $name));
 };

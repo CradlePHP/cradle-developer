@@ -19,98 +19,127 @@ use Cradle\Composer\Command;
  * @param Response $response
  */
 return function($request, $response) {
-    //this is the package name
+    // get the package name
     $name = $request->getStage(0);
 
-    //these are all the active packages
-    $active = $this->getPackages();
-
-    //these are all the installed packages
-    $installed = $this->package('global')->config('packages/installed');
-
-    // if installed is empty
-    if (!is_array($installed)) {
-        $installed = [];
+    // empty package name?
+    if (!$name) {
+        CommandLine::error(
+            'Not enough arguments. Usage: `cradle package remove vendor/package`'
+        );
     }
 
-    //it's not installed
-    if (!isset($installed[$name])) {
-        //CTA to call update instead
+    // if package is not installed
+    if (!$this->package('global')->config('version', $name)) {
+        // let them update instead
         CommandLine::error(sprintf(
-            'Package is not installed run `cradle package install %s` to install the package',
+            'Unable to remove package %s. Package is not installed.',
             $name
         ));
     }
 
-    // if package is not yet installed
-    if (!isset($active[$name])) {
-        // temporarily register the package
+    // get active packages
+    $packages = $this->getPackages();
+
+    // check if package is registered
+    if (!isset($packages[$name])) {
+        // manually register the package
         $package = $this->register($name)->package($name);
     } else {
-        // load the package space
-        $package = $this->package($name);    
+        // get the package information
+        $package = $this->package($name);
     }
 
-    // get current version
-    $current = $package->getPackageVersion();
+    // get the packaage type
+    $type = $package->getPackageType();
 
-    // NOTE: Need to trigger the package remove events
-    // first before we proceed to the actual composer
-    // package uninstallation...
-    // get author and package
-    CommandLine::info(sprintf('Removing package %s', $name));
-
-    // path is name
-    $path = $name;
-
-    // local package?
-    if (strpos($path, '/') === 0) {
-        // remove trailing /
-        $path = substr($path, 1);
+    // if it's a pseudo package
+    if ($type === Package::TYPE_PSEUDO) {
+        CommandLine::error(sprintf(
+            'Unable to remove pseudo package %s.',
+            $name
+        ));
     }
 
-    list($author, $packageName) = explode('/', $path, 2);
-    // formulate event handler
-    $event = sprintf('%s-%s-package-remove', $author, $packageName);
-    // trigger event handler
+    // if it's a root package
+    if ($type === Package::TYPE_ROOT) {
+        // directory doesn't exists?
+        if (!is_dir($package->getPackagePath())) {
+            CommandLine::error(sprintf(
+                'Unable to remove package. Root package %s does not exists.',
+                $name
+            ));
+        }
+
+        // bootstrap file exists?
+        if (!file_exists(
+            sprintf(
+                '%s/%s',
+                $package->getPackagePath(),
+                '.cradle.php'
+            )
+        )) {
+            CommandLine::error(sprintf(
+                'Unable to remove root package %s. Bootstrap file .cradle.php does not exists.',
+                $name
+            ));
+        }
+    }
+
+    // if it's a vendor package
+    if ($type === Package::TYPE_VENDOR) {
+        list($vendor, $namespace) = explode('/', $name, 2);
+    } else {
+        //it's a root package
+        list($vendor, $namespace) = explode('/', substr($name, 1), 2);
+    }
+
+    // trigger event
+    $event = sprintf('%s-%s-%s', $vendor, $namespace, 'remove');
     $this->trigger($event, $request, $response);
 
-    // handler does not exists?
-    if ($this->getEventHandler()->getMeta() === EventHandler::STATUS_NOT_FOUND) {
-        CommandLine::warning(sprintf('%s does not have a package remove handler. Skipping.', $name));
+    // if no event was triggered
+    $status = $this->getEventHandler()->getMeta();
+    if($status === EventHandler::STATUS_NOT_FOUND) {
+        // let them know that no event was triggered and we should proceed
+        CommandLine::warning(sprintf(
+            'Package %s has no package remove handler. Skipping.',
+            $name
+        ));
     }
 
-    // vendor package?
-    if ($package->getPackageType() == Package::TYPE_VENDOR) {
-        CommandLine::info('Removing the package from composer...');
+    // if error
+    if ($response->isError()) {
+        // we should still continue
+        CommandLine::error($response->getMessage(), false);
+    }
 
-        // get the composer home, composer needs to
-        // know where to place their cache files...
-        $home = dirname(__DIR__) . '/../../../../bin/composer';
+    // just ignore package related errors and proceed to package removal
+    if ($type === Package::TYPE_VENDOR && is_dir($package->getPackagePath())) {
+        //increase memory limit
+        ini_set('memory_limit', -1);
+
+        // composer needs to know where to place cache files
+        $composer = dirname(__DIR__) . '/../../../../bin/composer';
 
         // run composer require command
-        (new Command($home))->remove(sprintf('%s', $name));
+        (new Command($composer))->remove(sprintf('%s', $name));
+
+        CommandLine::success(sprintf(
+            'Package %s has been removed from your vendor packages.',
+            $name
+        ));
     }
 
-    // if current is installed
-    if (isset($installed[$name])) {
-        // remove from installed config
-        unset($installed[$name]);
+    // load the config
+    $version = $this->package('global')->config('version');
+
+    // unset the package
+    if (isset($version[$name])) {
+        // remove package
+        unset($version[$name]);
+
+        // update the package
+        $this->package('global')->config('version', $version);
     }
-
-    // get packages config path
-    $file = $this->package('global')->path('config') . '/packages';
-
-    // directory not exits?
-    if (!is_dir($file)) {
-        // make it ..
-        mkdir($file, 0777);
-    }
-
-    // set installed file config
-    $file .= '/installed.php';
-
-    // update the config
-    $content = "<?php //-->\nreturn ".var_export($installed, true).';';
-    file_put_contents($file, $content);
 };
