@@ -147,6 +147,13 @@ return function ($request, $response) {
     }
 
     if(!$request->hasStage('skip-versioning')) {
+        // get sample package config
+        $sample = $this->package('global')->config('packages.sample');
+
+        if (!$this->package('global')->config('packages')) {
+            $this->package('global')->config('packages', $sample);
+        }
+
         //now run the update
         $this->trigger('update', $request, $response);
     }
