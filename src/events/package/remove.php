@@ -128,7 +128,7 @@ return function($request, $response) {
         $composer = $this->package('global')->path('root') . '/vendor/bin/composer';
 
         // run composer require command
-        // (new Command($composer))->remove(sprintf('%s', $name));
+        (new Command($composer))->remove(sprintf('%s', $name));
 
         CommandLine::success(sprintf(
             'Package %s has been removed from your vendor packages.',

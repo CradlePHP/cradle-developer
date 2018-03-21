@@ -80,7 +80,7 @@ return function ($request, $response) {
 
         CommandLine::info(sprintf('Flushing %s', $name));
         list($author, $package) = explode('/', $path, 2);
-        $event = sprintf('%s-%s-flush-elastic', $author, $package);
+        $event = sprintf('%s-%s-elastic-flush', $author, $package);
         $this->trigger($event, $request, $response);
 
         if($this->getEventHandler()->getMeta() === EventHandler::STATUS_NOT_FOUND) {

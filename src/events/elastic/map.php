@@ -63,7 +63,7 @@ return function ($request, $response) {
 
         CommandLine::info(sprintf('Mapping %s', $name));
         list($author, $package) = explode('/', $path, 2);
-        $event = sprintf('%s-%s-map-elastic', $author, $package);
+        $event = sprintf('%s-%s-elastic-map', $author, $package);
         $this->trigger($event, $request, $response);
 
         switch ($this->getEventHandler()->getMeta()) {

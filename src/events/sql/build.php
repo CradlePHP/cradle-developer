@@ -78,7 +78,7 @@ return function ($request, $response) {
 
         CommandLine::info(sprintf('Building %s', $name));
         list($author, $package) = explode('/', $path, 2);
-        $event = sprintf('%s-%s-build-sql', $author, $package);
+        $event = sprintf('%s-%s-sql-build', $author, $package);
         $this->trigger($event, $request, $response);
 
         switch ($this->getEventHandler()->getMeta()) {

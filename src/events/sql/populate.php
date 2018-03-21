@@ -55,7 +55,7 @@ return function ($request, $response) {
 
         CommandLine::info(sprintf('Populating %s', $name));
         list($author, $package) = explode('/', $path, 2);
-        $event = sprintf('%s-%s-populate-sql', $author, $package);
+        $event = sprintf('%s-%s-sql-populate', $author, $package);
         $this->trigger($event, $request, $response);
 
         switch ($this->getEventHandler()->getMeta()) {

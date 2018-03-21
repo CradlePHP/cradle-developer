@@ -62,7 +62,7 @@ return function ($request, $response) {
 
         CommandLine::info(sprintf('Populating %s', $name));
         list($author, $package) = explode('/', $path, 2);
-        $event = sprintf('%s-%s-populate-elastic', $author, $package);
+        $event = sprintf('%s-%s-elastic-populate', $author, $package);
         $this->trigger($event, $request, $response);
 
         switch ($this->getEventHandler()->getMeta()) {
