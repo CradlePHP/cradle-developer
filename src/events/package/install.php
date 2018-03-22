@@ -134,8 +134,7 @@ return function($request, $response) {
 
         // let them know we're installing via composer
         CommandLine::info(sprintf(
-            'Installing the package %s:%s via composer.',
-            $name,
+            'Installing package version %s via composer.',
             $version
         ));
 
