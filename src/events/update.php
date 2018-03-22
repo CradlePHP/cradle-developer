@@ -43,7 +43,7 @@ return function ($request, $response) {
         //determine action
         $action = 'install';
         //if it's installed
-        if (isset($installed[$name])) {
+        if (isset($installed[$name]['version'])) {
             $action = 'update';
         }
 
