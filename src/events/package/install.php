@@ -166,13 +166,8 @@ return function($request, $response) {
         // let them install the package manually
         CommandLine::info('Package was added to your vendor packages.');
 
-        // let them know what they need to do next
-        CommandLine::info(sprintf(
-            'Run `cradle %s install` to complete the installation.',
-            $name
-        ));
-
-        return;
+        // register the package again
+        $package = $this->register($name)->package($name);
     }
 
     // if it's a vendor package

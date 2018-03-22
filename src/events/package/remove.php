@@ -41,15 +41,9 @@ return function($request, $response) {
     // get active packages
     $packages = $this->getPackages();
 
-    // check if package is registered
-    if (!isset($packages[$name])) {
-        // manually register the package
-        $package = $this->register($name)->package($name);
-    } else {
-        // get the package information
-        $package = $this->package($name);
-    }
-
+    // get pacakge
+    $package = $this->package($name);
+    
     // get the packaage type
     $type = $package->getPackageType();
 
