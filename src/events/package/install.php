@@ -66,19 +66,18 @@ return function($request, $response) {
     // if it's a pseudo package
     if ($type === Package::TYPE_PSEUDO) {
         CommandLine::error(sprintf(
-            'Unable to install pseudo package %s.',
+            'Can\'t install pseudo package %s.',
             $name
         ));
     }
 
     // if it's a root package
     if ($type === Package::TYPE_ROOT) {
+        CommandLine::info(sprintf('Installing root package %s.', $name));
+
         // directory doesn't exists?
         if (!is_dir($package->getPackagePath())) {
-            CommandLine::error(sprintf(
-                'Unable to install package. Root package %s does not exists.',
-                $name
-            ));
+            CommandLine::error('Package does not exists.');
         }
 
         // bootstrap file exists?
@@ -89,10 +88,7 @@ return function($request, $response) {
                 '.cradle.php'
             )
         )) {
-            CommandLine::error(sprintf(
-                'Unable to install root package %s. Bootstrap file .cradle.php does not exists.',
-                $name
-            ));
+            CommandLine::error('Bootstrap file .cradle.php does not exists.');
         }
 
         // just let the package process the given version
@@ -101,15 +97,14 @@ return function($request, $response) {
 
     // if it's a vendor package
     if ($type === Package::TYPE_VENDOR && !is_dir($package->getPackagePath())) {
+        CommandLine::info(sprintf('Installing vendor package %s.', $name));
+
         // we need to check from packagist
         $results = (new Packagist())->get($name);
 
         // if results is empty
         if (!isset($results['packages'][$name])) {
-            CommandLine::error(sprintf(
-                'Unable to install vendor package %s. Package does not exists.',
-                $name
-            ));
+            CommandLine::error('Package does not exists from packagists.org.');
         }
 
         // if version is not set
@@ -124,10 +119,7 @@ return function($request, $response) {
 
             // if no valid version
             if (empty($versions)) {
-                CommandLine::error(sprintf(
-                    'Unable to install vendor package %s. Could not find a valid version.',
-                    $name
-                ));
+                CommandLine::error('Couldn\'t find a valid version.');
             }
 
             //sort versions, and get the latest one
@@ -136,23 +128,16 @@ return function($request, $response) {
         } else {
             // if version does not exists
             if (!isset($results['packages'][$name][$version])) {
-                CommandLine::error(sprintf(
-                    'Unable to install vendor package %s. Could not find the provided version %s.',
-                    $name,
-                    $version
-                ));
+                CommandLine::error('Couldn\'t find the provided version.');
             }
         }
 
         // let them know we're installing via composer
         CommandLine::info(sprintf(
-            'Installing the vendor package %s@%s via composer.',
+            'Installing the package %s:%s via composer.',
             $name,
             $version
         ));
-
-        // and that it requires additional step to complete the installation
-        CommandLine::info('This will require additional steps to complete the installation.');
 
         //increase memory limit
         ini_set('memory_limit', -1);
@@ -164,7 +149,7 @@ return function($request, $response) {
         (new Command($composer))->require(sprintf('%s:%s', $name, $version));
 
         // let them install the package manually
-        CommandLine::info('Package was added to your vendor packages.');
+        CommandLine::info('Package has been installed.');
 
         // register the package again
         $package = $this->register($name)->package($name);

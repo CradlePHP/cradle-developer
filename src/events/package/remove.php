@@ -33,7 +33,7 @@ return function($request, $response) {
     if (!$this->package('global')->config('packages', $name)) {
         // let them update instead
         CommandLine::error(sprintf(
-            'Unable to remove package %s. Package is not installed.',
+            'Package is not yet installed. Run `cradle package install %s` instead.',
             $name
         ));
     }
@@ -50,19 +50,18 @@ return function($request, $response) {
     // if it's a pseudo package
     if ($type === Package::TYPE_PSEUDO) {
         CommandLine::error(sprintf(
-            'Unable to remove pseudo package %s.',
+            'Can\'t remove pseudo package %s.',
             $name
         ));
     }
 
     // if it's a root package
     if ($type === Package::TYPE_ROOT) {
+        CommandLine::info(sprintf('Removing root package %s.', $name));
+
         // directory doesn't exists?
         if (!is_dir($package->getPackagePath())) {
-            CommandLine::error(sprintf(
-                'Unable to remove package. Root package %s does not exists.',
-                $name
-            ));
+            CommandLine::error('Package does not exists.');
         }
 
         // bootstrap file exists?
@@ -73,10 +72,7 @@ return function($request, $response) {
                 '.cradle.php'
             )
         )) {
-            CommandLine::error(sprintf(
-                'Unable to remove root package %s. Bootstrap file .cradle.php does not exists.',
-                $name
-            ));
+            CommandLine::error('Bootstrap file .cradle.php does not exists.');
         }
     }
 
@@ -115,6 +111,8 @@ return function($request, $response) {
 
     // just ignore package related errors and proceed to package removal
     if ($type === Package::TYPE_VENDOR && is_dir($package->getPackagePath())) {
+        CommandLine::info(sprintf('Removing vendor package %s.', $name));
+
         //increase memory limit
         ini_set('memory_limit', -1);
 
@@ -124,9 +122,6 @@ return function($request, $response) {
         // run composer require command
         (new Command($composer))->remove(sprintf('%s', $name));
 
-        CommandLine::success(sprintf(
-            'Package %s has been removed from your vendor packages.',
-            $name
-        ));
+        CommandLine::success('Package has been removed');
     }
 };

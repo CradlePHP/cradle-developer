@@ -35,7 +35,7 @@ return function($request, $response) {
     // valid version?
     if ($version && !preg_match('/^[0-9\.]+$/i', $version)) {
         CommandLine::error(
-            'Unable to update package. Version is not valid version format should be 0.0.*.'
+            'Version format is not valid.'
         );
     }
 
@@ -57,19 +57,18 @@ return function($request, $response) {
     // if it's a pseudo package
     if ($type === Package::TYPE_PSEUDO) {
         CommandLine::error(sprintf(
-            'Unable to update pseudo package %s.',
+            'Can\'t update pseudo package %s.',
             $name
         ));
     }
 
     // if it's a root package
     if ($type === Package::TYPE_ROOT) {
+        CommandLine::info(sprintf('Updating root package %s.', $name));
+
         // directory doesn't exists?
         if (!is_dir($package->getPackagePath())) {
-            CommandLine::error(sprintf(
-                'Unable to update package. Root package %s does not exists.',
-                $name
-            ));
+            CommandLine::error('Package does not exists.');
         }
 
         // bootstrap file exists?
@@ -80,10 +79,7 @@ return function($request, $response) {
                 '.cradle.php'
             )
         )) {
-            CommandLine::error(sprintf(
-                'Unable to update root package %s. Bootstrap file .cradle.php does not exists.',
-                $name
-            ));
+            CommandLine::error('Bootstrap file .cradle.php does not exists.');
         }
 
         // just let the package process the given version
@@ -92,26 +88,42 @@ return function($request, $response) {
 
     // if it's a vendor package
     if ($type === Package::TYPE_VENDOR && is_dir($package->getPackagePath())) {
+        CommandLine::info(sprintf('Updating vendor package %s.', $name));
+
         // we need to check from packagist
         $results = (new Packagist())->get($name);
 
         // if results is empty
         if (!isset($results['packages'][$name])) {
+            CommandLine::error('Package does not exists.');
+        }
+
+        // load composer file
+        $composer = json_decode(
+            file_get_contents(
+                $this->package('global')->path('root') . '/composer.json'
+            ),
+            true
+        );
+
+        // get the installed version
+        $installed = $composer['require'][$name];
+
+        // less than installed version?
+        if ($version && version_compare($version, $installed, '<=')) {
             CommandLine::error(sprintf(
-                'Unable to update vendor package %s. Package does not exists.',
-                $name
+                'Specified version must be greater than installed version. %s (target) <= %s (current)',
+                $version,
+                $installed
             ));
         }
 
-        // load the composer json
-        $config = json_decode(file_get_contents(
-            $this->package('global')->path('root') . '/composer.json'
-        ), true);
+        // the version should exists in packagists
+        if ($version && !isset($results['packages'][$name][$version])) {
+            CommandLine::error('Specified version does not exists.');
+        }
 
-        // check installed version
-        $installed = $config['require'][$name];
-
-        // if version is not set
+        // if they didn't provide a version
         if (!$version) {
             // look for valid versions e.g 0.0.1
             $versions = [];
@@ -123,52 +135,24 @@ return function($request, $response) {
 
             // if no valid version
             if (empty($versions)) {
-                CommandLine::error(sprintf(
-                    'Unable to update vendor package %s. Could not find a valid version.',
-                    $name
-                ));
+                CommandLine::error('Couldn\'t find a valid version.');
             }
 
             //sort versions, and get the latest one
             usort($versions, 'version_compare');
             $version = array_pop($versions);
-        } else {
-            // if the given version is less than our installed version
-            if (version_compare($version, $installed, '<')) {
-                // let them know that we can't install < version
-                CommandLine::error(sprintf(
-                    'Unable to update vendor package %s from %s to %s.',
-                    $name,
-                    $installed,
-                    $version
-                ), false);
-
-                // let them know that it's > the installed version
-                CommandLine::error('Specified version must be greater than the installed version.');
-            }
-
-            // if version does not exists
-            if (!isset($results['packages'][$name][$version])) {
-                CommandLine::error(sprintf(
-                    'Unable to update vendor package %s. Could not find the provided version %s.',
-                    $name,
-                    $version
-                ));
-            }
         }
 
-        // if the installed version is > the target version
-        if (version_compare($version, $installed, '>')) {
-            // let them know we're updating via composer
+        // if the version is the same as the installed version
+        if (version_compare($version, $installed, '==')) {
+            CommandLine::info('Package is already on it\'s latest version.');
+        } else {
+            // let them know we're installing via composer
             CommandLine::info(sprintf(
-                'Updating the vendor package %s to from %s to %s via composer.',
-                $name,
+                'Updating the package from %s to %s via composer.',
                 $installed,
                 $version
             ));
-
-            // and that it requires additional step to complete the update
-            CommandLine::info('This will require additional steps to complete the package update.');
 
             //increase memory limit
             ini_set('memory_limit', -1);
@@ -176,27 +160,15 @@ return function($request, $response) {
             // composer needs to know where to place cache files
             $composer = $this->package('global')->path('root') . '/vendor/bin/composer';
 
-            // run composer require command
+            // run composer update command
             (new Command($composer))->require(sprintf('%s:%s', $name, $version));
 
             // let them install the package manually
-            CommandLine::info('Package was updated');
+            CommandLine::info('Package has been updated.');
 
-            // let them know what they need to do next
-            CommandLine::info(sprintf(
-                'Run `cradle %s update` to complete the package update.',
-                $name
-            ));
-
-            return;
+            // register the package again
+            $package = $this->register($name)->package($name);
         }
-        
-        // let them know that the package is already installed
-        CommandLine::warning(sprintf(
-            'Package %s@%s is already installed. Skipping.',
-            $name,
-            $version
-        ));
     }
 
     // if it's a vendor package
