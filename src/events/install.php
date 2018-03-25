@@ -151,7 +151,7 @@ return function ($request, $response) {
         if (!$this->package('global')->config('packages')) {
             // get sample package config
             $sample = $this->package('global')->config('packages.sample');
-            
+
             // save the default packages from sample
             $this->package('global')->config('packages', $sample);
 
@@ -177,5 +177,6 @@ return function ($request, $response) {
     }
 
     CommandLine::info('Recommended actions:');
+    CommandLine::info(' - bin/cradle sql populate');
     CommandLine::info(' - yarn build');
 };
