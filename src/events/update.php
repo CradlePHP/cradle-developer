@@ -19,6 +19,16 @@ use Cradle\Event\EventHandler;
  * @param Response $response
  */
 return function ($request, $response) {
+    //schema should be writeable
+    $folder = $this->package('global')->path('config') . '/schema';
+    if (!is_dir($folder) || !is_writable($folder)) {
+        CommandLine::error(sprintf(
+            '%s is not writable Try `chmod -R 777 %s` first',
+            $folder,
+            $folder
+        ));
+    }
+
     //these are all the active packages
     $active = $this->getPackages();
     //these are the installed packages
