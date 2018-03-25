@@ -7,6 +7,7 @@
  - `$ cradle install --skip-sql` - Installs Cradle, but skips the sql part
  - `$ cradle install --skip-versioning` - Installs Cradle but skips updating the packages
  - `$ cradle install -h 127.0.0.1 -u root -p 123` - Installs Cradle with the given database information
+ - `$ cradle server -h 127.0.0.1 -p 8888` - Starts a PHP server
  - `$ cradle update` - Updates all packages to their latest version
  - `$ cradle deploy` - Deploy Commands
  - `$ cradle deploy help` - Deploy help menu
