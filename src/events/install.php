@@ -147,11 +147,29 @@ return function ($request, $response) {
     }
 
     if(!$request->hasStage('skip-versioning')) {
-        // get sample package config
-        $sample = $this->package('global')->config('packages.sample');
-
+        // copy the default packages if it doesn't exists
         if (!$this->package('global')->config('packages')) {
+            // get sample package config
+            $sample = $this->package('global')->config('packages.sample');
+            
+            // save the default packages from sample
             $this->package('global')->config('packages', $sample);
+
+        // reset the version from all the packages
+        } else {
+            // get the packages
+            $packages = $this->package('global')->config('packages');
+
+            // on each packages
+            foreach($packages as $package => $config) {
+                // reset the version so we can re-install again
+                if (isset($config['version'])) {
+                    unset($packages[$package]['version']);
+                }
+            }
+
+            // update the config
+            $this->package('global')->config('packages', $packages);
         }
 
         //now run the update

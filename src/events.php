@@ -121,38 +121,6 @@ $this->on('elastic-map', include __DIR__ . '/events/elastic/map.php');
 $this->on('elastic-populate', include __DIR__ . '/events/elastic/populate.php');
 
 /**
- * $ cradle generate
- *
- * @param Request $request
- * @param Response $response
- */
-$this->on('generate', include __DIR__ . '/events/generate.php');
-
-/**
- * $ cradle generate help
- *
- * @param Request $request
- * @param Response $response
- */
-$this->on('generate-help', include __DIR__ . '/events/generate/help.php');
-
-/**
- * $ cradle generate module foobar
- *
- * @param Request $request
- * @param Response $response
- */
-$this->on('generate-module', include __DIR__ . '/events/generate/module.php');
-
-/**
- * $ cradle generate app foobar
- *
- * @param Request $request
- * @param Response $response
- */
-$this->on('generate-app', include __DIR__ . '/events/generate/admin.php');
-
-/**
  * $ cradle package
  *
  * @param Request $request
