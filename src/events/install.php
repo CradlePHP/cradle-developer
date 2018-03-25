@@ -17,6 +17,16 @@ use Cradle\Storm\SqlFactory;
  * @param Response $response
  */
 return function ($request, $response) {
+    //schema should be writeable
+    $folder = $this->package('global')->path('config') . '/schema';
+    if (!is_dir($folder) || !is_writable($folder)) {
+        CommandLine::error(sprintf(
+            '%s is not writable Try `chmod -R 777 %s` first',
+            $folder,
+            $folder
+        ));
+    }
+
     //whether to ask questions
     $force = $request->hasStage('f') || $request->hasStage('force');
 
@@ -179,4 +189,6 @@ return function ($request, $response) {
     CommandLine::info('Recommended actions:');
     CommandLine::info(' - bin/cradle sql populate');
     CommandLine::info(' - yarn build');
+    CommandLine::info(' - chmod -R 777 config/admin');
+    CommandLine::info(' - chmod -R 777 config/i18n');
 };
