@@ -36,6 +36,14 @@ $this->on('help', include __DIR__ . '/events/help.php');
 $this->on('install', include __DIR__ . '/events/install.php');
 
 /**
+ * $ cradle server -h 127.0.0.1 -p 8888
+ *
+ * @param Request $request
+ * @param Response $response
+ */
+$this->on('server', include __DIR__ . '/events/server.php');
+
+/**
  * $ cradle update
  *
  * @param Request $request
