@@ -29,6 +29,13 @@ return function ($request, $response) {
         ));
     }
 
+    //listen for install and update
+    $schemas = [];
+    $events = ['system-schema-create', 'system-schema-update'];
+    $this->on($events, function($request, $response) use (&$schemas) {
+        $schemas[] = $request->getStage('name');
+    });
+
     //these are all the active packages
     $active = $this->getPackages();
     //these are the installed packages
@@ -77,7 +84,11 @@ return function ($request, $response) {
         if ($action === 'install') {
             $message = sprintf('Installed %s', $name);
             if ($response->hasResults('version')) {
-                $message = sprintf('Installed %s to %s', $name, $response->getResults('version'));
+                $message = sprintf(
+                    'Installed %s to %s',
+                    $name,
+                    $response->getResults('version')
+                );
             }
 
             CommandLine::success($message, false);
@@ -87,9 +98,39 @@ return function ($request, $response) {
         //it's update
         $message = sprintf('Updated %s', $name);
         if ($response->hasResults('version')) {
-            $message = sprintf('Updated %s to %s', $name, $response->getResults('version'));
+            $message = sprintf(
+                'Updated %s to %s',
+                $name,
+                $response->getResults('version')
+            );
         }
 
         CommandLine::success($message, false);
     }
+
+    //deal with schemas without packages
+    $this->trigger('system-schema-search', $request, $response);
+    foreach ($response->getResults('rows') as $schema) {
+        //if this schema has already been installed/updated
+        if (in_array($schema['name'], $schemas)) {
+            //skip it
+            continue;
+        }
+
+        //run an update
+        $request->setStage($schema);
+        $this->trigger('system-schema-update', $request, $response);
+
+        //if error
+        if ($response->isError()) {
+            CommandLine::error($response->getMessage(), false);
+            continue;
+        }
+
+        //it's update
+        $message = sprintf('Updated %s', $schema['name']);
+        CommandLine::success($message, false);
+    }
+
+    $response->setResults($schemas);
 };
