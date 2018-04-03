@@ -12,19 +12,26 @@ return function ($request, $response) {
      * @param $package
      */
     ->addMethod('packageLog', function(
-        $type = null, 
+        $type = null,
         $message = null, 
         $package = null, 
         $status = null
-    ) {
+    ) use (&$request, &$response) {
+        $cli = (bool) $request->getStage('cli');
+
         // if type and message is set
-        if ($type && $message) {
+        if (!$cli && $type && $message) {
             // call out command line
             \Cradle\Framework\CommandLine::$type($message, false);
         }
     
         // skip if package is not set
         if (!$package) {
+            // regular error?
+            if ($type && $type == 'error') {
+                exit;
+            }
+
             return;
         }
 
@@ -101,7 +108,7 @@ return function ($request, $response) {
         file_put_contents($file, $content);
 
         // should we exit?
-        if ($type && $type === 'error') {
+        if ($type && $type == 'error') {
             exit;
         }
     });

@@ -17,7 +17,13 @@ use Cradle\Composer\Packagist;
  * @param Response $response
  */
 return function($request, $response) {
-    CommandLine::info('Searching for packages...');
+    // cli?
+    $cli = (bool) $request->getStage('cli');
+
+    // get developer package
+    $developer = $this->package('cradlephp/cradle-developer');
+
+    $developer->packageLog('info', 'Searching for packages...');
 
     // initialize packagist
     $packagist = new Packagist();
@@ -64,20 +70,28 @@ return function($request, $response) {
     // if we have packages
     if (isset($packages['results'])
     && !empty($packages['results'])) {
-        CommandLine::info(sprintf('Found %s package(s).', $packages['total']));
+        $developer->packageLog('info', sprintf('Found %s package(s).', $packages['total']));
+
+        // if non cli
+        if (!$cli || $cli == 'false') {
+            // set response
+            $response
+                ->setError(false)
+                ->set('json', 'results', $packages);
+        }
   
         // print each package
         foreach($packages['results'] as $package) {
-            CommandLine::success(sprintf(
+            $developer->packageLog('success', sprintf(
                 '* %s - %s',
                 $package['name'],
                 $package['description']
             ));
         }
 
-        CommandLine::warning('Run: `cradle package install vendor/package` to install a package.');
+        $developer->packageLog('warning', 'Run: `cradle package install vendor/package` to install a package.');
         return;
     }
 
-    CommandLine::error('No package(s) found', false);
+    $developer->packageLog('error', 'No package(s) found');
 };

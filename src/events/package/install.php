@@ -7,7 +7,6 @@
  * distributed with this package.
  */
 
-use Cradle\Framework\CommandLine;
 use Cradle\Framework\Package;
 use Cradle\Event\EventHandler;
 use Cradle\Composer\Command;
@@ -116,10 +115,10 @@ return function($request, $response) {
             )
         )) {
             $developer->packageLog(
-                'error',
+                'warning',
                 'Bootstrap file .cradle.php does not exists.',
                 $name,
-                'install-error'
+                'install-warning'
             );
         }
 
@@ -210,11 +209,23 @@ return function($request, $response) {
             })
             // require the package
             ->require(sprintf('%s:%s', $name, $version));
-
+        
         // let them install the package manually
         $developer->packageLog('info', 'Package has been installed.', $name);
+    }
 
-        // register the package again
+    // clone the bootstrap file
+    $bootstrap = new ReflectionClass($package);
+    // get the methods
+    $methods = $bootstrap->getProperty('methods');
+    // make it accessible
+    $methods->setAccessible(true);
+    // get methods
+    $methods = $methods->getValue($package);
+    
+    // check if install methods is set
+    if (!isset($methods['install'])) {
+        // try to register the package
         $package = $this->register($name)->package($name);
     }
 
@@ -228,7 +239,7 @@ return function($request, $response) {
 
     // trigger event
     $event = sprintf('%s-%s-%s', $vendor, $package, 'install');
-    // $this->trigger($event, $request, $response);
+    $this->trigger($event, $request, $response);
 
     // if no event was triggered
     $status = $this->getEventHandler()->getMeta();
