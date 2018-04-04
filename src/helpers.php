@@ -17,10 +17,10 @@ return function ($request, $response) {
         $package = null, 
         $status = null
     ) use (&$request, &$response) {
-        $cli = (bool) $request->getStage('cli');
+        $data = $request->hasStage('data');
 
         // if type and message is set
-        if (!$cli && $type && $message) {
+        if (!$data && $type && $message) {
             // call out command line
             \Cradle\Framework\CommandLine::$type($message, false);
         }
@@ -28,7 +28,7 @@ return function ($request, $response) {
         // skip if package is not set
         if (!$package) {
             // regular error?
-            if ($type && $type == 'error') {
+            if (!$data && $type && $type == 'error') {
                 exit;
             }
 
@@ -108,7 +108,7 @@ return function ($request, $response) {
         file_put_contents($file, $content);
 
         // should we exit?
-        if ($type && $type == 'error') {
+        if (!$data && $type && $type == 'error') {
             exit;
         }
     });
