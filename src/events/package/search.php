@@ -76,7 +76,7 @@ return function($request, $response) {
             // set response
             $response
                 ->setError(false)
-                ->set('json', 'results', $packages);
+                ->set('json', $packages);
         }
   
         // print each package
