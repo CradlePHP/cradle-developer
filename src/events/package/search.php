@@ -17,9 +17,6 @@ use Cradle\Composer\Packagist;
  * @param Response $response
  */
 return function($request, $response) {
-    // data?
-    $data = $request->getStage('data');
-
     // get developer package
     $developer = $this->package('cradlephp/cradle-developer');
 
@@ -72,7 +69,7 @@ return function($request, $response) {
     && !empty($packages['results'])) {
         $developer->packageLog('info', sprintf('Found %s package(s).', $packages['total']));
 
-        if ($data) {
+        if ($request->hasStage('data')) {
             // set response
             $response
                 ->setError(false)

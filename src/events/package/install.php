@@ -48,8 +48,11 @@ return function($request, $response) {
         );
     }
 
+    // get package config
+    $config = $this->package('global')->config('packages', $name);
+
     // does the package installed already?
-    if ($this->package('global')->config('packages', $name)) {
+    if ($config && isset($config['version'])) {
         // let them update instead
         $developer->packageLog(
             'error',
