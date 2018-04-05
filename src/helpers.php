@@ -47,7 +47,7 @@ return function ($request, $response) {
 
         // package log file
         $file = sprintf(
-            cradle('global')->path('config') . '/packages/%s.log.php',
+            cradle('global')->path('config') . '/packages/%s.install.php',
             $package
         );
 
