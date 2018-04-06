@@ -16,7 +16,7 @@ use Cradle\Framework\CommandLine;
  * @param Response $response
  */
 return function ($request, $response) {
-    $cwd = $request->getServer('PWD');
+    $cwd = getcwd();
     $deploy = $this->package('global')->config('deploy');
 
     if (empty($deploy)) {

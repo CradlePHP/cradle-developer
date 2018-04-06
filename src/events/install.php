@@ -93,7 +93,7 @@ return function ($request, $response) {
     }
 
     //setup the configs
-    $cwd = $request->getServer('PWD');
+    $cwd = getcwd();
     if(!$request->hasStage('skip-configs')) {
         CommandLine::system('Setting up config files...');
 
