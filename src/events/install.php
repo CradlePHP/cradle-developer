@@ -125,6 +125,52 @@ return function ($request, $response) {
         }
     }
 
+    //create compiled, log, public/upload, config/schema
+    if(!$request->hasStage('skip-mkdir')) {
+        if (!is_dir($cwd . '/compiled')) {
+            CommandLine::system('Making ' . $cwd . '/compiled');
+            mkdir($cwd . '/compiled', 0777);
+        }
+
+        if (!is_dir($cwd . '/log')) {
+            CommandLine::system('Making ' . $cwd . '/log');
+            mkdir($cwd . '/log', 0777);
+        }
+
+        if (!is_dir($cwd . '/public/upload')) {
+            CommandLine::system('Making ' . $cwd . '/public/upload');
+            mkdir($cwd . '/public/upload', 0777);
+        }
+
+        if (!is_dir($cwd . '/config/schema')) {
+            CommandLine::system('Making ' . $cwd . '/config/schema');
+            mkdir($cwd . '/config/schema', 0777);
+        }
+    }
+
+    //chmod compiled, log, config, public/upload
+    if(!$request->hasStage('skip-chmod')) {
+        if (is_dir($cwd . '/compiled')) {
+            CommandLine::system('chmoding ' . $cwd . '/compiled');
+            chmod($cwd . '/compiled', 0777);
+        }
+
+        if (is_dir($cwd . '/log')) {
+            CommandLine::system('chmoding ' . $cwd . '/log');
+            chmod($cwd . '/log', 0777);
+        }
+
+        if (is_dir($cwd . '/config')) {
+            CommandLine::system('chmoding ' . $cwd . '/config');
+            chmod($cwd . '/config', 0777);
+        }
+
+        if (is_dir($cwd . '/public/upload')) {
+            CommandLine::system('chmoding ' . $cwd . '/public/upload');
+            chmod($cwd . '/public/upload', 0777);
+        }
+    }
+
     if(!$request->hasStage('skip-sql')) {
         //SQL
         CommandLine::system('Setting up SQL...');
@@ -189,6 +235,4 @@ return function ($request, $response) {
     CommandLine::info('Recommended actions:');
     CommandLine::info(' - bin/cradle sql populate');
     CommandLine::info(' - yarn build');
-    CommandLine::info(' - chmod -R 777 config/admin');
-    CommandLine::info(' - chmod -R 777 config/i18n');
 };
