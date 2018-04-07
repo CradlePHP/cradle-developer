@@ -16,6 +16,11 @@ use Cradle\Framework\CommandLine;
  * @param Response $response
  */
 return function($request, $response) {
+    // load developer package
+    $developer = $this->package('cradlephp/cradle-developer');
+
+    $developer->packageLog('info', 'List of available packages...');
+
     //tmp
     $next = function($path) {
         //if there is no install
@@ -155,6 +160,14 @@ return function($request, $response) {
     }
 
     foreach ($packages as $package) {
-        CommandLine::info($package['name'] . '(' . $package['version'] . ') -> ' . $package['available']);
+        $developer->packageLog(
+            'success', 
+            '* ' . $package['name'] . '(' . $package['version'] . ') -> ' . $package['available']
+        );
+    }
+
+    if ($request->hasStage('data')) {
+        $response
+            ->set('json', 'results', $packages);
     }
 };

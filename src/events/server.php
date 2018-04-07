@@ -37,6 +37,6 @@ return function ($request, $response) {
     CommandLine::info('Listening on ' . $host . ':'.$port);
     CommandLine::info('Press Ctrl-C to quit.');
 
-    $cwd = $request->getServer('PWD');
+    $cwd = getcwd();
     system('php -S ' . $host . ':' . $port . ' -t ' . $cwd . '/public');
 };
