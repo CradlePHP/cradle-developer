@@ -146,10 +146,24 @@ return function ($request, $response) {
             CommandLine::system('Making ' . $cwd . '/config/schema');
             mkdir($cwd . '/config/schema', 0777);
         }
+
+        if (!is_dir($cwd . '/config/packages')) {
+            CommandLine::system('Making ' . $cwd . '/config/packages');
+            mkdir($cwd . '/config/packages', 0777);
+        }
     }
 
     //chmod compiled, log, config, public/upload
     if(!$request->hasStage('skip-chmod')) {
+        // special case for config folder
+        $configDirectories = glob($cwd . '/config/*', GLOB_ONLYDIR);
+
+        // map each directories
+        foreach($configDirectories as $directory) {
+            CommandLine::system('chmoding ' . $directory);
+            chmod($directory, 0777);
+        }
+
         if (is_dir($cwd . '/compiled')) {
             CommandLine::system('chmoding ' . $cwd . '/compiled');
             chmod($cwd . '/compiled', 0777);
@@ -158,11 +172,6 @@ return function ($request, $response) {
         if (is_dir($cwd . '/log')) {
             CommandLine::system('chmoding ' . $cwd . '/log');
             chmod($cwd . '/log', 0777);
-        }
-
-        if (is_dir($cwd . '/config')) {
-            CommandLine::system('chmoding ' . $cwd . '/config');
-            chmod($cwd . '/config', 0777);
         }
 
         if (is_dir($cwd . '/public/upload')) {
