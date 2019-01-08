@@ -40,6 +40,22 @@ return function ($request, $response) {
     $public = $this->package('global')->path('public');
     $pattern = '(\.htaccess)|(\.php)|(DS_Store)';
 
+    $root = null;
+    if (isset($cdn['root']) && strpos($cdn['root'], '<') !== 0) {
+        $root = $cdn['root'];
+        if (strpos($root, '/') === 0) {
+            $root = substr($root, 1);
+        }
+
+        if (substr($root, -1) !== '/') {
+            $root .= '/';
+        }
+
+        if ($root === '/') {
+            $root = null;
+        }
+    }
+
     if(!$request->hasStage('include-yarn')) {
         $pattern .= '|(\/components)';
     }
@@ -67,6 +83,8 @@ return function ($request, $response) {
 
         // if /foo/bar/repo/public/path/to/file, then /path/to/file
         $path = substr($file, strlen($public) + 1);
+
+        $path = $root . $path;
 
         //there's no better way to get a mime
         $mime = File::getMimeFromLink($file);
