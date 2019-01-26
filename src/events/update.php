@@ -118,12 +118,17 @@ return function ($request, $response) {
         }
 
         //run an update
-        $request->setStage($schema);
-        $this->trigger('system-schema-update', $request, $response);
+        $payload = $this->makePayload();
+        $payload['request']->setStage($schema);
+        $this->trigger(
+            'system-schema-update',
+            $payload['request'],
+            $payload['response']
+        );
 
         //if error
-        if ($response->isError()) {
-            CommandLine::error($response->getMessage(), false);
+        if ($payload['response']->isError()) {
+            CommandLine::error($payload['response']->getMessage(), false);
             continue;
         }
 
