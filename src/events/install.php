@@ -97,7 +97,6 @@ return function ($request, $response) {
     if(!$request->hasStage('skip-configs')) {
         CommandLine::system('Setting up config files...');
 
-
         $paths = scandir(__DIR__ . '/../template/config');
         foreach($paths as $path) {
             if($path === '.' || $path === '..' || substr($path, -4) !== '.php') {
@@ -241,7 +240,9 @@ return function ($request, $response) {
         $this->trigger('update', $request, $response);
     }
 
-    CommandLine::info('Recommended actions:');
-    CommandLine::info(' - bin/cradle sql populate');
-    CommandLine::info(' - yarn build');
+    if (!$response->isError()) {
+        CommandLine::info('Recommended actions:');
+        CommandLine::info(' - bin/cradle sql populate');
+        CommandLine::info(' - yarn build');
+    }
 };

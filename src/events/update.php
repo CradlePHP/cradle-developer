@@ -41,6 +41,7 @@ return function ($request, $response) {
     //these are the installed packages
     $installed = $this->package('global')->config('packages');
 
+    $hasErrors = false;
     foreach ($active as $name => $package) {
         $type = $package->getPackageType();
         //skip pseudo packages
@@ -64,6 +65,12 @@ return function ($request, $response) {
             $action = 'update';
         }
 
+        if ($action === 'install') {
+            CommandLine::system(sprintf('Installing %s', $name));
+        } else {
+            CommandLine::system(sprintf('Updating %s', $name));
+        }
+
         //trigger event
         $event = sprintf('%s-%s-%s', $vendor, $package, $action);
         $this->trigger($event, $request, $response);
@@ -71,12 +78,51 @@ return function ($request, $response) {
         //if no event was triggered
         $status = $this->getEventHandler()->getMeta();
         if($status === EventHandler::STATUS_NOT_FOUND) {
+            CommandLine::warning(sprintf('No actions needed on %s', $name));
             continue;
+        }
+
+        $logs = $response->getResults('logs');
+        if (!empty($logs)) {
+            foreach ($logs as $package => $group) {
+                foreach ($group as $version => $messages) {
+                    foreach ($messages as $log) {
+                        CommandLine::$brand = '[' . $package . ' ' . $version . ']';
+                        if (!isset($log['message'])) {
+                            continue;
+                        }
+
+                        if (!isset($log['type'])) {
+                            $log['type'] = 'info';
+                        }
+
+                        switch ($log['type']) {
+                            case 'warning':
+                                CommandLine::warning($log['message']);
+                                break;
+                            case 'error':
+                                CommandLine::error($log['message'], false);
+                                break;
+                            case 'system':
+                            case 'info':
+                            default:
+                                CommandLine::system($log['message']);
+                                break;
+                        }
+                    }
+                }
+            }
+
+            CommandLine::$brand = '[cradle]';
+            $response->removeResults('logs');
         }
 
         //if error
         if ($response->isError()) {
-            CommandLine::error($response->getMessage(), false);
+            $message = sprintf('%s did not correctly install.', $name);
+            CommandLine::error($message, false);
+            $response->remove('json');
+            $hasErrors = true;
             continue;
         }
 
@@ -132,9 +178,15 @@ return function ($request, $response) {
             continue;
         }
 
-        //it's update
-        $message = sprintf('Updated %s', $schema['name']);
+        //it's updated
+        $message = sprintf('Updated schema %s', $schema['name']);
         CommandLine::success($message, false);
+    }
+
+    if ($hasErrors) {
+        $message = 'There were some errors in the packages being installed/updated.';
+        CommandLine::error($message, false);
+        $response->setError(true, $message);
     }
 
     $response->setResults($schemas);
