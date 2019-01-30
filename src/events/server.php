@@ -38,5 +38,6 @@ return function ($request, $response) {
     CommandLine::info('Press Ctrl-C to quit.');
 
     $cwd = getcwd();
-    system('php -S ' . $host . ':' . $port . ' -t ' . $cwd . '/public');
+    $router = dirname(__DIR__) . '/router.php';
+    system('php -S ' . $host . ':' . $port . ' -t ' . $cwd . '/public ' . $router);
 };
