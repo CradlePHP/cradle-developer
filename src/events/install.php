@@ -272,7 +272,9 @@ return function ($request, $response) {
         $this->trigger('update', $request, $response);
     }
 
-    CommandLine::info('Recommended actions:');
-    CommandLine::info(' - bin/cradle sql populate');
-    CommandLine::info(' - yarn build');
+    if (!$response->isError()) {
+        CommandLine::info('Recommended actions:');
+        CommandLine::info(' - bin/cradle sql populate');
+        CommandLine::info(' - yarn build');
+    }
 };
