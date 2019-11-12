@@ -134,6 +134,10 @@ return function ($request, $response) {
                 $contents = str_replace('<DATABASE PASS>', $pass, $contents);
     
                 file_put_contents($destination, $contents);
+                $config = include $destination;
+
+                $this->package('global')->service(null);
+                $this->package('global')->config(basename($path, '.php'), $config);
                 continue;
             }
 
@@ -144,6 +148,11 @@ return function ($request, $response) {
             $contents = str_replace('<DATABASE PASS>', $pass, $contents);
 
             file_put_contents($destination, $contents);
+
+            $config = include $destination;
+
+            $this->package('global')->service(null);	
+            $this->package('global')->config(basename($path, '.php'), $config);
         }
     }
 
