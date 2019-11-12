@@ -106,7 +106,7 @@ return function ($request, $response) {
             $source = __DIR__ . '/../template/config/' . $path;
             $destination = $cwd . '/config/' . $path;
 
-            if (file_exists($destination) && !$force) {                
+            if (file_exists($destination) && !$force) {
                 $answer = CommandLine::input('Overwrite config/' . $path . '?(y)', 'y');
                 if ($answer !== 'y') {
                     CommandLine::system('Skipping...');
@@ -151,7 +151,7 @@ return function ($request, $response) {
 
             $config = include $destination;
 
-            $this->package('global')->service(null);	
+            $this->package('global')->service(null);
             $this->package('global')->config(basename($path, '.php'), $config);
         }
     }
