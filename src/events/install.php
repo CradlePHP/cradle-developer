@@ -94,11 +94,11 @@ return function ($request, $response) {
 
     //setup the configs
     $cwd = getcwd();
-    if(!$request->hasStage('skip-configs')) {
+    if (!$request->hasStage('skip-configs')) {
         CommandLine::system('Setting up config files...');
 
         $paths = scandir(__DIR__ . '/../template/config');
-        foreach($paths as $path) {
+        foreach ($paths as $path) {
             if($path === '.' || $path === '..' || substr($path, -4) !== '.php') {
                 continue;
             }
@@ -154,7 +154,7 @@ return function ($request, $response) {
     }
 
     //create compiled, log, public/upload, config/schema
-    if(!$request->hasStage('skip-mkdir')) {
+    if (!$request->hasStage('skip-mkdir')) {
         if (!is_dir($cwd . '/compiled')) {
             CommandLine::system('Making ' . $cwd . '/compiled');
             mkdir($cwd . '/compiled', 0777);
@@ -182,12 +182,12 @@ return function ($request, $response) {
     }
 
     //chmod compiled, log, config, public/upload
-    if(!$request->hasStage('skip-chmod')) {
+    if (!$request->hasStage('skip-chmod')) {
         // special case for config folder
         $configDirectories = glob($cwd . '/config/*', GLOB_ONLYDIR);
 
         // map each directories
-        foreach($configDirectories as $directory) {
+        foreach ($configDirectories as $directory) {
             CommandLine::system('chmoding ' . $directory);
             chmod($directory, 0777);
         }
@@ -208,7 +208,7 @@ return function ($request, $response) {
         }
     }
 
-    if(!$request->hasStage('skip-sql')) {
+    if (!$request->hasStage('skip-sql')) {
         //SQL
         CommandLine::system('Setting up SQL...');
 
@@ -239,7 +239,7 @@ return function ($request, $response) {
         }
     }
 
-    if(!$request->hasStage('skip-versioning')) {
+    if ($request->hasStage('reinstall-packages')) {
         // copy the default packages if it doesn't exists
         if (!$this->package('global')->config('packages')) {
             // get sample package config
@@ -254,7 +254,7 @@ return function ($request, $response) {
             $packages = $this->package('global')->config('packages');
 
             // on each packages
-            foreach($packages as $package => $config) {
+            foreach ($packages as $package => $config) {
                 // reset the version so we can re-install again
                 if (isset($config['version'])) {
                     unset($packages[$package]['version']);
@@ -264,8 +264,10 @@ return function ($request, $response) {
             // update the config
             $this->package('global')->config('packages', $packages);
         }
+    }
 
-        //now run the update
+    if  (!$request->hasStage('skip-versioning')) {
+        //run the update
         $this->trigger('update', $request, $response);
     }
 
