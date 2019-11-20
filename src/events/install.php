@@ -114,6 +114,33 @@ return function ($request, $response) {
                 }
             }
 
+            //check for sample files
+            $fileName = trim($path, '.php');
+            $sampleFile = $fileName . '.sample.php';
+            $sampleFilePath = $cwd . '/config/' . $sampleFile;
+
+            if (file_exists($sampleFilePath) && !$force) {
+                CommandLine::system('Sample file found for '. $path);
+                $answer = CommandLine::input('Use sample file for ' . $path . '?(y)', 'y');
+                if ($answer !== 'y') {
+                    CommandLine::system('Skipping...');
+                    continue;
+                }
+
+                $contents = file_get_contents($sampleFilePath);
+                $contents = str_replace('<DATABASE HOST>', $host, $contents);
+                $contents = str_replace('<DATABASE NAME>', $name, $contents);
+                $contents = str_replace('<DATABASE USER>', $user, $contents);
+                $contents = str_replace('<DATABASE PASS>', $pass, $contents);
+    
+                file_put_contents($destination, $contents);
+                $config = include $destination;
+
+                $this->package('global')->service(null);
+                $this->package('global')->config(basename($path, '.php'), $config);
+                continue;
+            }
+
             $contents = file_get_contents($source);
             $contents = str_replace('<DATABASE HOST>', $host, $contents);
             $contents = str_replace('<DATABASE NAME>', $name, $contents);
@@ -121,12 +148,11 @@ return function ($request, $response) {
             $contents = str_replace('<DATABASE PASS>', $pass, $contents);
 
             file_put_contents($destination, $contents);
-            
+
             $config = include $destination;
 
             $this->package('global')->service(null);
             $this->package('global')->config(basename($path, '.php'), $config);
-            
         }
     }
 
