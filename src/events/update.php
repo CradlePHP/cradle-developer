@@ -165,12 +165,7 @@ return function ($request, $response) {
 
         //run an update
         $payload = $this->makePayload();
-        $payload['request']->setStage($schema);
-        $this->trigger(
-            'system-schema-update',
-            $payload['request'],
-            $payload['response']
-        );
+        $this->method('system-schema-update', $schema, $payload['response']);
 
         //if error
         if ($payload['response']->isError()) {
