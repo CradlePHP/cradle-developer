@@ -24,8 +24,7 @@
         "php-coveralls/php-coveralls": "~2.1.0"
     },
     "require": {
-        "cradlephp/framework": "~2.2.0",
-        "cradlephp/composer": "dev-master",
+        "cradlephp/framework": "~2.3.0",
         "aws/aws-sdk-php": "3.19.30"
     }
 }

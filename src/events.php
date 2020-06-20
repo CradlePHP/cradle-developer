@@ -129,64 +129,6 @@ $this->on('elastic-map', include __DIR__ . '/events/elastic/map.php');
 $this->on('elastic-populate', include __DIR__ . '/events/elastic/populate.php');
 
 /**
- * $ cradle package
- *
- * @param Request $request
- * @param Response $response
- */
-$this->on('package', include __DIR__ . '/events/package.php');
-
-/**
- * $ cradle package help
- *
- * @param Request $request
- * @param Response $response
- */
-$this->on('package-help', include __DIR__ . '/events/package/help.php');
-
-/**
- * $ cradle package install foo/bar
- * $ cradle package install foo/bar 1.0.0
- *
- * @param Request $request
- * @param Response $response
- */
-$this->on('package-install', include __DIR__ . '/events/package/install.php');
-
-/**
- * $ cradle package list
- *
- * @param Request $request
- * @param Response $response
- */
-$this->on('package-list', include __DIR__ . '/events/package/list.php');
-
-/**
- * $ cradle package remove foo/bar
- *
- * @param Request $request
- * @param Response $response
- */
-$this->on('package-remove', include __DIR__ . '/events/package/remove.php');
-
-/**
- * $ cradle package search foobar
- *
- * @param Request $request
- * @param Response $response
- */
-$this->on('package-search', include __DIR__ . '/events/package/search.php');
-
-/**
- * $ cradle package update foo/bar
- * $ cradle package update foo/bar 1.0.0
- *
- * @param Request $request
- * @param Response $response
- */
-$this->on('package-update', include __DIR__ . '/events/package/update.php');
-
-/**
  * $ cradle redis
  *
  * @param Request $request
